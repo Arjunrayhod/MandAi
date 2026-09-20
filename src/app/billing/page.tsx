@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency, generateWhatsAppReminder } from '@/lib/gstUtils';
 import { 
   Receipt, 
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function InvoicesListPage() {
-  const { invoices, company, deleteInvoice } = useAppStore();
+  const { invoices, company, deleteInvoice, language } = useAppStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
 
@@ -51,7 +52,7 @@ export default function InvoicesListPage() {
       companyName: company.name,
       upiId: company.bankDetails.upiId,
       phone: inv.party.phone,
-      lang: 'hi',
+      lang: language === 'en' ? 'en' : 'hi',
     });
     window.open(url, '_blank');
   };
@@ -63,10 +64,10 @@ export default function InvoicesListPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Receipt className="w-7 h-7 text-indigo-600" />
-            मंडी बिल व इनवॉइस (GST Invoices)
+            {t('billing_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            मंडी व्यापार के सभी पक्के बिल, टैक्स इनवॉइस और भुगतान स्थिति
+            {t('billing_subtitle', language)}
           </p>
         </div>
 
@@ -75,7 +76,7 @@ export default function InvoicesListPage() {
           className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
-          + नया बिल बनाएं (Create Invoice)
+          {t('new_bill_btn', language)}
         </Link>
       </div>
 
@@ -85,7 +86,7 @@ export default function InvoicesListPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="बिल नंबर, पार्टी या फर्म का नाम खोजें..."
+            placeholder={t('search_placeholder', language)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-indigo-500"
@@ -105,7 +106,11 @@ export default function InvoicesListPage() {
                     : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
-                {st === 'all' ? 'सभी बिल' : st === 'unpaid' ? 'बकाया (Unpaid)' : 'जमा (Paid)'}
+                {st === 'all'
+                  ? t('filter_all_docs', language)
+                  : st === 'unpaid'
+                  ? t('pending', language)
+                  : t('paid', language)}
               </button>
             ))}
           </div>
@@ -118,15 +123,15 @@ export default function InvoicesListPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                <th className="py-3 px-4">बिल नं.</th>
-                <th className="py-3 px-4">पार्टी विवरण</th>
-                <th className="py-3 px-4">तारीख</th>
-                <th className="py-3 px-4">नियत तारीख (Due)</th>
-                <th className="py-3 px-4 text-right">कर योग्य मूल्य</th>
-                <th className="py-3 px-4 text-right">कुल राशि</th>
-                <th className="py-3 px-4 text-right">बकाया राशि</th>
-                <th className="py-3 px-4 text-center">स्थिति</th>
-                <th className="py-3 px-4 text-right">एक्शन</th>
+                <th className="py-3 px-4">{t('col_bill_no', language)}</th>
+                <th className="py-3 px-4">{t('col_party', language)}</th>
+                <th className="py-3 px-4">{t('invoice_date', language)}</th>
+                <th className="py-3 px-4">{t('due_date', language)}</th>
+                <th className="py-3 px-4 text-right">{t('taxable_subtotal', language)}</th>
+                <th className="py-3 px-4 text-right">{t('col_total_amount', language)}</th>
+                <th className="py-3 px-4 text-right">{t('balance_to_receive', language)}</th>
+                <th className="py-3 px-4 text-center">{t('status', language)}</th>
+                <th className="py-3 px-4 text-right">{t('actions', language)}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -134,7 +139,7 @@ export default function InvoicesListPage() {
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
                     <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                    कोई बिल नहीं मिला। नया बिल बनाने के लिए ऊपर बटन दबाएं।
+                    {language === 'hi' ? 'कोई बिल नहीं मिला।' : language === 'en' ? 'No invoices found.' : 'Koi bill nahi mila.'}
                   </td>
                 </tr>
               ) : (
@@ -173,9 +178,9 @@ export default function InvoicesListPage() {
                           : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
                       }`}>
                         {inv.status === 'paid' ? (
-                          <><CheckCircle2 className="w-3 h-3" /> Paid</>
+                          <><CheckCircle2 className="w-3 h-3" /> {t('paid', language)}</>
                         ) : (
-                          <><Clock className="w-3 h-3" /> बाकी</>
+                          <><Clock className="w-3 h-3" /> {t('pending', language)}</>
                         )}
                       </span>
                     </td>
@@ -183,25 +188,25 @@ export default function InvoicesListPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleWhatsApp(inv)}
-                          title="WhatsApp तगादा / Reminder"
+                          title={t('whatsapp_reminder', language)}
                           className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition"
                         >
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
                         <Link
                           href={`/billing/${inv.id}`}
-                          title="देखें व प्रिंट करें"
+                          title={t('view', language)}
                           className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white transition"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
                         <button
                           onClick={() => {
-                            if (confirm(`क्या आप बिल #${inv.invoiceNumber} डिलीट करना चाहते हैं?`)) {
+                            if (confirm(t('confirm_delete', language))) {
                               deleteInvoice(inv.id);
                             }
                           }}
-                          title="डिलीट करें"
+                          title={t('delete', language)}
                           className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-500 hover:text-white transition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

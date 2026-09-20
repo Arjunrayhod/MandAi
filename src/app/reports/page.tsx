@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency } from '@/lib/gstUtils';
 import { 
   BarChart3, 
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function ReportsPage() {
-  const { invoices, parties, products, company } = useAppStore();
+  const { invoices, parties, products, company, language } = useAppStore();
   const [activeTab, setActiveTab] = useState<'sales' | 'gstr1' | 'outstanding' | 'commodity'>('sales');
 
   const totalSales = invoices.reduce((sum, i) => sum + i.finalAmount, 0);
@@ -38,10 +39,10 @@ export default function ReportsPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 className="w-7 h-7 text-indigo-600" />
-            मंडी व्यापार रिपोर्ट्स व GST समरी (Reports)
+            {t('reports_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            बिक्री रिपोर्ट, GSTR-1 आउटपुट टैक्स, पार्टी उधारी बही व जिंस अनुसार रिपोर्ट
+            {t('reports_subtitle', language)}
           </p>
         </div>
 
@@ -50,7 +51,7 @@ export default function ReportsPage() {
           className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition"
         >
           <Printer className="w-4 h-4" />
-          रिपोर्ट प्रिंट करें (Print Report)
+          {t('print', language)}
         </button>
       </div>
 
@@ -64,7 +65,7 @@ export default function ReportsPage() {
               : 'text-slate-600 dark:text-slate-300'
           }`}
         >
-          📈 बिक्री रिपोर्ट (Sales)
+          📈 {t('sales_report', language)}
         </button>
         <button
           onClick={() => setActiveTab('gstr1')}
@@ -74,7 +75,7 @@ export default function ReportsPage() {
               : 'text-slate-600 dark:text-slate-300'
           }`}
         >
-          🏛️ GSTR-1 टैक्स समरी
+          🏛️ {t('gstr1_summary', language)}
         </button>
         <button
           onClick={() => setActiveTab('outstanding')}
@@ -84,7 +85,7 @@ export default function ReportsPage() {
               : 'text-slate-600 dark:text-slate-300'
           }`}
         >
-          👥 पार्टी उधारी (Outstanding)
+          👥 {t('outstanding_report', language)}
         </button>
         <button
           onClick={() => setActiveTab('commodity')}
@@ -94,35 +95,35 @@ export default function ReportsPage() {
               : 'text-slate-600 dark:text-slate-300'
           }`}
         >
-          🌾 जिंस-वार बिक्री (Commodity)
+          🌾 {language === 'hi' ? 'जिंस-वार बिक्री' : language === 'en' ? 'Commodity Sales' : 'Jins Sales'}
         </button>
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <span className="text-xs font-semibold text-slate-500">कुल बिक्री (Total Sales)</span>
+          <span className="text-xs font-semibold text-slate-500">{t('rep_total_sales', language)}</span>
           <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">
             {formatIndianCurrency(totalSales)}
           </h3>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <span className="text-xs font-semibold text-slate-500">कुल कर योग्य मूल्य</span>
+          <span className="text-xs font-semibold text-slate-500">{t('rep_taxable_value', language)}</span>
           <h3 className="text-xl font-black text-indigo-600 mt-1">
             {formatIndianCurrency(totalTaxable)}
           </h3>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <span className="text-xs font-semibold text-slate-500">कुल GST कर राशि</span>
+          <span className="text-xs font-semibold text-slate-500">{t('rep_gst_collected', language)}</span>
           <h3 className="text-xl font-black text-emerald-600 mt-1">
             {formatIndianCurrency(totalTax)}
           </h3>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <span className="text-xs font-semibold text-slate-500">मार्केट उधारी (Outstanding)</span>
+          <span className="text-xs font-semibold text-slate-500">{t('total_receivable', language)}</span>
           <h3 className="text-xl font-black text-amber-600 mt-1">
             {formatIndianCurrency(totalOutstanding)}
           </h3>

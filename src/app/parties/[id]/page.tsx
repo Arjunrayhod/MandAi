@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency, generateWhatsAppReminder } from '@/lib/gstUtils';
 import { 
   Users, 
@@ -20,7 +21,7 @@ import Link from 'next/link';
 export default function PartyDetailPage() {
   const params = useParams();
   const partyId = params.id as string;
-  const { parties, invoices, payments, company, recordPayment } = useAppStore();
+  const { parties, invoices, payments, company, recordPayment, language } = useAppStore();
 
   const party = parties.find((p) => p.id === partyId);
 
@@ -144,7 +145,7 @@ export default function PartyDetailPage() {
             className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition"
           >
             <Printer className="w-4 h-4" />
-            स्टेटमेंट प्रिंट (Print Ledger)
+            {t('print_statement_btn', language)}
           </button>
 
           <button
@@ -152,7 +153,7 @@ export default function PartyDetailPage() {
             className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition"
           >
             <Share2 className="w-4 h-4" />
-            WhatsApp तगादा
+            {t('whatsapp_statement_btn', language)}
           </button>
 
           <button
@@ -160,7 +161,7 @@ export default function PartyDetailPage() {
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition"
           >
             <DollarSign className="w-4 h-4" />
-            + भुगतान जमा (Payment In)
+            {t('record_payment', language)}
           </button>
         </div>
       </div>
@@ -168,28 +169,40 @@ export default function PartyDetailPage() {
       {/* KPI Cards (Hidden on print) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 no-print">
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">कुल बिल राशि (Total Debit)</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {language === 'hi' ? 'कुल बिल राशि (Total Debit)' : language === 'en' ? 'Total Invoiced (Debit)' : 'Total Bill Amount (Debit)'}
+          </span>
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
             {formatIndianCurrency(totalBilled)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">{partyInvoices.length} बिल जारी</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {partyInvoices.length} {language === 'hi' ? 'बिल जारी' : language === 'en' ? 'Invoices Issued' : 'Bills Generated'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">कुल जमा भुगतान (Total Credit)</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {language === 'hi' ? 'कुल जमा भुगतान (Total Credit)' : language === 'en' ? 'Total Payments (Credit)' : 'Total Jama (Credit)'}
+          </span>
           <h3 className="text-2xl font-black text-emerald-600 mt-1">
             {formatIndianCurrency(totalPaid)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">{partyPayments.length} भुगतान दर्ज</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {partyPayments.length} {language === 'hi' ? 'भुगतान दर्ज' : language === 'en' ? 'Payments Recorded' : 'Payments Recorded'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">वर्तमान शुद्ध बाकी (Closing Due)</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {t('closing_due', language)}
+          </span>
           <h3 className="text-2xl font-black text-amber-600 mt-1">
             {formatIndianCurrency(party.currentBalance)}
           </h3>
           <p className="text-[11px] text-rose-600 font-semibold mt-1">
-            {party.currentBalance > 0 ? 'वसूली बाकी है' : 'खाता चुकता'}
+            {party.currentBalance > 0
+              ? (language === 'hi' ? 'वसूली बाकी है' : language === 'en' ? 'Outstanding' : 'Vasooli Baaki Hai')
+              : (language === 'hi' ? 'खाता चुकता' : language === 'en' ? 'Settled' : 'Khata Barabar')}
           </p>
         </div>
       </div>
@@ -208,24 +221,26 @@ export default function PartyDetailPage() {
           </div>
           <div className="text-right">
             <span className="bg-slate-100 text-slate-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-slate-300 inline-block mb-1">
-              खाता बही स्टेटमेंट (PARTY LEDGER)
+              {t('ledger_statement_title', language)}
             </span>
-            <p className="text-xs text-slate-600">तारीख: {new Date().toISOString().split('T')[0]}</p>
+            <p className="text-xs text-slate-600">{t('date', language)}: {new Date().toISOString().split('T')[0]}</p>
           </div>
         </div>
 
         {/* Party Info Box */}
         <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 mb-4 grid grid-cols-2 text-xs">
           <div>
-            <span className="text-slate-500 font-medium">खाता धारक (Account of):</span>
+            <span className="text-slate-500 font-medium">
+              {language === 'hi' ? 'खाता धारक (Account of):' : language === 'en' ? 'Account Holder:' : 'Khata Holder:'}
+            </span>
             <p className="font-bold text-sm text-slate-900">{party.businessName || party.name}</p>
             <p className="text-slate-700">{party.billingAddress}, {party.city}</p>
             <p className="text-slate-700 font-mono">GSTIN: {party.gstin || 'Unregistered'}</p>
           </div>
           <div className="text-right space-y-1">
-            <p><span className="text-slate-500">संपर्क:</span> {party.phone}</p>
-            <p><span className="text-slate-500">प्रारंभिक बाकी (Opening):</span> <span className="font-bold">{formatIndianCurrency(party.openingBalance)}</span></p>
-            <p><span className="text-slate-500">अंतिम बाकी (Closing Due):</span> <span className="font-bold text-rose-600">{formatIndianCurrency(party.currentBalance)}</span></p>
+            <p><span className="text-slate-500">{t('phone', language)}:</span> {party.phone}</p>
+            <p><span className="text-slate-500">{t('field_opening_balance', language)}:</span> <span className="font-bold">{formatIndianCurrency(party.openingBalance)}</span></p>
+            <p><span className="text-slate-500">{t('closing_due', language)}:</span> <span className="font-bold text-rose-600">{formatIndianCurrency(party.currentBalance)}</span></p>
           </div>
         </div>
 
@@ -233,12 +248,12 @@ export default function PartyDetailPage() {
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-slate-100 border-y border-slate-400 text-slate-700 uppercase text-[10px] tracking-wider font-bold">
-              <th className="py-2.5 px-3 w-24">तारीख (Date)</th>
-              <th className="py-2.5 px-3 w-32">संदर्भ (Ref No.)</th>
-              <th className="py-2.5 px-3">विवरण (Description)</th>
-              <th className="py-2.5 px-3 text-right w-28">नामे / बिल (Debit ₹)</th>
-              <th className="py-2.5 px-3 text-right w-28">जमा / भुगतान (Credit ₹)</th>
-              <th className="py-2.5 px-3 text-right w-32">बाकी शेष (Balance ₹)</th>
+              <th className="py-2.5 px-3 w-24">{t('col_date', language)}</th>
+              <th className="py-2.5 px-3 w-32">{t('col_ref', language)}</th>
+              <th className="py-2.5 px-3">{t('col_particulars', language)}</th>
+              <th className="py-2.5 px-3 text-right w-28">{t('col_debit', language)}</th>
+              <th className="py-2.5 px-3 text-right w-28">{t('col_credit', language)}</th>
+              <th className="py-2.5 px-3 text-right w-32">{t('col_balance', language)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -246,7 +261,7 @@ export default function PartyDetailPage() {
             <tr className="bg-slate-50/60 font-semibold text-slate-700">
               <td className="py-2 px-3">{party.createdAt.split('T')[0]}</td>
               <td className="py-2 px-3 font-mono">OP-BAL</td>
-              <td className="py-2 px-3">प्रारंभिक शेष (Opening Balance)</td>
+              <td className="py-2 px-3">{t('field_opening_balance', language)}</td>
               <td className="py-2 px-3 text-right">{party.openingBalance > 0 ? formatIndianCurrency(party.openingBalance) : '-'}</td>
               <td className="py-2 px-3 text-right">-</td>
               <td className="py-2 px-3 text-right font-bold">{formatIndianCurrency(party.openingBalance)}</td>
@@ -255,7 +270,7 @@ export default function PartyDetailPage() {
             {ledgerWithBalance.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-6 text-center text-slate-400">
-                  कोई नया लेन-देन दर्ज नहीं है।
+                  {language === 'hi' ? 'कोई नया लेन-देन दर्ज नहीं है।' : language === 'en' ? 'No transactions found.' : 'Koi naya transaction nahi hai.'}
                 </td>
               </tr>
             ) : (
@@ -280,7 +295,7 @@ export default function PartyDetailPage() {
             {/* Total Summary Row */}
             <tr className="bg-slate-100 border-t-2 border-slate-400 font-bold text-slate-900">
               <td colSpan={3} className="py-2.5 px-3 text-right uppercase">
-                कुल योग (Total):
+                {language === 'hi' ? 'कुल योग (Total):' : language === 'en' ? 'Total Summary:' : 'Total Yog:'}
               </td>
               <td className="py-2.5 px-3 text-right font-bold">
                 {formatIndianCurrency(totalBilled + party.openingBalance)}
@@ -298,13 +313,15 @@ export default function PartyDetailPage() {
         {/* Footer Signatures */}
         <div className="mt-8 pt-6 border-t border-slate-300 flex justify-between items-end text-xs text-slate-700">
           <div>
-            <p>• कृपया शेष राशि का मिलान कर लें।</p>
-            <p>• किसी भी त्रुटि की सूचना 7 दिनों के भीतर दें।</p>
+            <p>• {language === 'hi' ? 'कृपया शेष राशि का मिलान कर लें।' : language === 'en' ? 'Please verify your statement balance.' : 'Kripya balance ka milan kar lein.'}</p>
+            <p>• {language === 'hi' ? 'किसी भी त्रुटि की सूचना 7 दिनों के भीतर दें।' : language === 'en' ? 'Report any discrepancies within 7 days.' : 'Kisi bhi truti ki soochna 7 dino me dein.'}</p>
           </div>
           <div className="text-center">
             <p className="font-bold">For {company.name}</p>
             <div className="h-10"></div>
-            <p className="border-t border-slate-400 px-6 pt-1">अधिकृत हस्ताक्षर (Authorised)</p>
+            <p className="border-t border-slate-400 px-6 pt-1">
+              {language === 'hi' ? 'अधिकृत हस्ताक्षर (Authorised)' : language === 'en' ? 'Authorised Signatory' : 'Authorised Signature'}
+            </p>
           </div>
         </div>
       </div>
@@ -314,16 +331,16 @@ export default function PartyDetailPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-              भुगतान दर्ज करें (Record Payment)
+              {t('payment_modal_title', language)}
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              {party.businessName} • कुल बाकी: {formatIndianCurrency(party.currentBalance)}
+              {party.businessName} • {t('closing_due', language)}: {formatIndianCurrency(party.currentBalance)}
             </p>
 
             <form onSubmit={handleAddPayment} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  जमा राशि (Amount in ₹) *
+                  {t('field_paid_amount', language)} *
                 </label>
                 <input
                   type="number"
@@ -337,27 +354,27 @@ export default function PartyDetailPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  भुगतान माध्यम (Mode)
+                  {t('field_payment_mode', language)}
                 </label>
                 <select
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value as any)}
                   className="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
                 >
-                  <option value="Cash">Cash (रोकड़)</option>
-                  <option value="UPI">UPI (GooglePay / PhonePe)</option>
-                  <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
-                  <option value="Cheque">Cheque (चेक)</option>
+                  <option value="Cash">{t('mode_cash', language)}</option>
+                  <option value="UPI">{t('mode_upi', language)}</option>
+                  <option value="Bank Transfer">{t('mode_bank', language)}</option>
+                  <option value="Cheque">{t('mode_cheque', language)}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  रिफरेंस / UTR / नोट
+                  {t('notes', language)}
                 </label>
                 <input
                   type="text"
-                  placeholder="Optional reference"
+                  placeholder="Optional reference / UTR"
                   value={payRef}
                   onChange={(e) => setPayRef(e.target.value)}
                   className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
@@ -370,13 +387,13 @@ export default function PartyDetailPage() {
                   onClick={() => setShowPayModal(false)}
                   className="w-1/2 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700"
                 >
-                  रद्द करें
+                  {t('cancel', language)}
                 </button>
                 <button
                   type="submit"
                   className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm"
                 >
-                  जमा दर्ज करें
+                  {t('save', language)}
                 </button>
               </div>
             </form>

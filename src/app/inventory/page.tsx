@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Product } from '@/lib/types';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency } from '@/lib/gstUtils';
 import { 
   Package, 
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function InventoryPage() {
-  const { products, addProduct, updateProduct, deleteProduct, adjustStock } = useAppStore();
+  const { products, addProduct, updateProduct, deleteProduct, adjustStock, language } = useAppStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showStockAdjustModal, setShowStockAdjustModal] = useState(false);
@@ -112,10 +113,10 @@ export default function InventoryPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Package className="w-7 h-7 text-indigo-600" />
-            मंडी जिंस व गोडाउन स्टॉक (Commodity Stock)
+            {t('inventory_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            कृषि उपज, कस्तूरी दाना, ईसबगोल, अश्वगंधा व अन्य जिंसों का बोरी/वजन अनुसार स्टॉक
+            {t('inventory_subtitle', language)}
           </p>
         </div>
 
@@ -124,34 +125,40 @@ export default function InventoryPage() {
           className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
-          + नई जिंस / आइटम जोड़ें (Add Commodity)
+          {t('add_commodity', language)}
         </button>
       </div>
 
       {/* Stock Summary Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">कुल दर्ज जिंस आइटम</span>
+          <span className="text-xs font-semibold text-slate-500">{t('card_total_commodities', language)}</span>
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-            {products.length} <span className="text-xs font-medium text-slate-400">आइटम्स</span>
+            {products.length} <span className="text-xs font-medium text-slate-400">{language === 'hi' ? 'जिंस' : 'Items'}</span>
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">मंडी यार्ड व गोडाउन में</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'मंडी यार्ड व गोडाउन में' : language === 'en' ? 'In yard & warehouse' : 'Mandi yard & godown me'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">गोडाउन कुल बोरियां (Total Bags)</span>
+          <span className="text-xs font-semibold text-slate-500">{t('card_total_bags', language)}</span>
           <h3 className="text-2xl font-black text-indigo-600 mt-1">
-            {products.reduce((sum, p) => sum + (p.bagCount || 0), 0)} <span className="text-xs font-medium text-slate-400">बोरी</span>
+            {products.reduce((sum, p) => sum + (p.bagCount || 0), 0)} <span className="text-xs font-medium text-slate-400">{t('bags_count', language)}</span>
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">कट्टा / बोरी स्टॉक</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'कट्टा / बोरी स्टॉक' : language === 'en' ? 'Bags stock count' : 'Bori stock ginti'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">स्टॉक मूल्यांकन (Stock Value)</span>
+          <span className="text-xs font-semibold text-slate-500">{t('card_stock_value', language)}</span>
           <h3 className="text-2xl font-black text-emerald-600 mt-1">
             {formatIndianCurrency(totalStockValuation)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">खरीद भाव आधार पर</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'खरीद भाव आधार पर' : language === 'en' ? 'Based on purchase rate' : 'Kharid bhaav aadhar par'}
+          </p>
         </div>
       </div>
 
@@ -161,7 +168,7 @@ export default function InventoryPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="जिंस का नाम, मुसकादाना, HSN या कैटेगरी खोजें..."
+            placeholder={t('search_placeholder', language)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-indigo-500"
@@ -175,15 +182,15 @@ export default function InventoryPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                <th className="py-3 px-4">जिंस / फसल का नाम</th>
-                <th className="py-3 px-4">HSN कोड</th>
-                <th className="py-3 px-4">कैटेगरी</th>
-                <th className="py-3 px-4 text-right">खरीद भाव</th>
-                <th className="py-3 px-4 text-right">बिक्री भाव</th>
-                <th className="py-3 px-4 text-center">GST %</th>
-                <th className="py-3 px-4 text-right">बोरी स्टॉक</th>
-                <th className="py-3 px-4 text-right">कुल वजन (Stock)</th>
-                <th className="py-3 px-4 text-right">एक्शन</th>
+                <th className="py-3 px-4">{t('col_item_name', language)}</th>
+                <th className="py-3 px-4">{t('col_hsn', language)}</th>
+                <th className="py-3 px-4">{language === 'hi' ? 'कैटेगरी' : language === 'en' ? 'Category' : 'Category'}</th>
+                <th className="py-3 px-4 text-right">{t('col_avg_cost', language)}</th>
+                <th className="py-3 px-4 text-right">{t('rate_price', language)}</th>
+                <th className="py-3 px-4 text-center">{t('col_tax_rate', language)}</th>
+                <th className="py-3 px-4 text-right">{t('col_bags_stock', language)}</th>
+                <th className="py-3 px-4 text-right">{t('col_current_stock_qtl', language)}</th>
+                <th className="py-3 px-4 text-right">{t('actions', language)}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -228,7 +235,7 @@ export default function InventoryPage() {
                     </td>
 
                     <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">
-                      {prod.bagCount !== undefined ? `${prod.bagCount} बोरी` : '-'}
+                      {prod.bagCount !== undefined ? `${prod.bagCount}` : '-'}
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
@@ -237,7 +244,7 @@ export default function InventoryPage() {
                       </span>
                       {isLow && (
                         <span className="block text-[9px] text-rose-500 font-bold uppercase">
-                          लो-स्टॉक
+                          {t('low_stock_warning', language)}
                         </span>
                       )}
                     </td>
@@ -253,15 +260,15 @@ export default function InventoryPage() {
                           }}
                           className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-bold text-[11px] transition"
                         >
-                          स्टॉक आवक/जावक
+                          {t('stock_in_out', language)}
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm(`क्या आप ${prod.name} डिलीट करना चाहते हैं?`)) {
+                            if (confirm(t('confirm_delete', language))) {
                               deleteProduct(prod.id);
                             }
                           }}
-                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition"
+                          className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-500 hover:text-white transition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

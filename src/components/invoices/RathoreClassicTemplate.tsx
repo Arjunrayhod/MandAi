@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
@@ -41,7 +41,15 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
         {/* Left: Logo & Company Address */}
         <div className="flex items-start gap-3">
           <div className="w-12 h-12 rounded-full bg-[#1e293b] text-white flex items-center justify-center font-bold text-base border-2 border-gray-400 shrink-0">
-            RTC
+            {company.name
+              ? company.name
+                  .split(' ')
+                  .filter(Boolean)
+                  .map((w) => w[0])
+                  .slice(0, 3)
+                  .join('')
+                  .toUpperCase()
+              : 'MND'}
           </div>
           <div>
             <h1 className="text-xl font-bold text-black tracking-tight leading-none mb-1">

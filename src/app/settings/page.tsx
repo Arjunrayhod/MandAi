@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { CompanyProfile } from '@/lib/types';
+import { getTranslation, t } from '@/lib/translations';
 import { INDIAN_STATES } from '@/lib/gstUtils';
 import { BackupRestoreModal } from '@/components/common/BackupRestoreModal';
 import { 
@@ -20,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { company, updateCompany, resetToDefault } = useAppStore();
+  const { company, updateCompany, resetToDefault, language } = useAppStore();
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
 
@@ -43,7 +44,7 @@ export default function SettingsPage() {
   };
 
   const handleReset = () => {
-    if (confirm('क्या आप Rathore Trading Company का डिफ़ॉल्ट सैंपल डेटा दोबारा लोड करना चाहते हैं?')) {
+    if (confirm(language === 'hi' ? 'क्या आप Rathore Trading Company का डिफ़ॉल्ट सैंपल डेटा दोबारा लोड करना चाहते हैं?' : language === 'en' ? 'Reset to default sample data?' : 'Sample data reset karna chahte hain?')) {
       resetToDefault();
       window.location.reload();
     }
@@ -56,10 +57,10 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Wheat className="w-7 h-7 text-indigo-600" />
-            मंडी फर्म व व्यापार सेटिंग (Mandi Profile & Setup)
+            {t('settings_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            कृषि उपज मंडी फर्म प्रोफ़ाइल, GSTIN, बैंक खाता, UPI QR कोड और आढ़त डिफ़ॉल्ट्स
+            {t('settings_subtitle', language)}
           </p>
         </div>
 
@@ -70,7 +71,7 @@ export default function SettingsPage() {
             className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-xs px-3.5 py-2 rounded-xl border border-indigo-200 dark:border-indigo-800 transition"
           >
             <Database className="w-3.5 h-3.5 text-indigo-600" />
-            डेटा बैकअप व रिस्टोर
+            {t('backup_restore', language)}
           </button>
 
           <button
@@ -79,7 +80,7 @@ export default function SettingsPage() {
             className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl transition"
           >
             <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-            Reset Sample Data
+            {language === 'hi' ? 'सैंपल डेटा रीसेट' : language === 'en' ? 'Reset Sample Data' : 'Reset Sample Data'}
           </button>
         </div>
       </div>
@@ -87,7 +88,7 @@ export default function SettingsPage() {
       {savedSuccess && (
         <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
           <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-          मंडी फर्म प्रोफ़ाइल और सेटिंग सफलतापूर्वक सुरक्षित कर ली गई है!
+          {t('success_saved', language)}
         </div>
       )}
 
@@ -96,55 +97,111 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <Scale className="w-4 h-4 text-amber-500" />
-            1. मंडी आढ़त व तौल डिफ़ॉल्ट सेटिंग (Mandi Trade Defaults)
+            1. {t('tab_mandi_defaults', language)}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                औसत बोरी वजन (Kg per Bag)
+                {language === 'hi' ? 'औसत बोरी वजन (Kg)' : language === 'en' ? 'Standard Bag Wt (Kg)' : 'Bag Weight (Kg)'}
               </label>
               <input
                 type="number"
-                placeholder="50"
-                defaultValue={50}
+                value={formData.mandiDefaults?.defaultBagWeightKg ?? 50}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    mandiDefaults: {
+                      ...(formData.mandiDefaults || {
+                        defaultBagWeightKg: 50,
+                        defaultTareWeightKg: 1.0,
+                        defaultHammaliRatePerBag: 20,
+                        defaultTulaiRatePerBag: 5,
+                        mandiCessPercent: 0,
+                      }),
+                      defaultBagWeightKg: Number(e.target.value),
+                    },
+                  })
+                }
                 className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                बारदान काट (Tare Kg per Bag)
+                {language === 'hi' ? 'बारदान काट (Tare Kg)' : language === 'en' ? 'Tare Weight (Kg)' : 'Bardan Katoti (Kg)'}
               </label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="1.0"
-                defaultValue={1.0}
+                value={formData.mandiDefaults?.defaultTareWeightKg ?? 1.0}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    mandiDefaults: {
+                      ...(formData.mandiDefaults || {
+                        defaultBagWeightKg: 50,
+                        defaultTareWeightKg: 1.0,
+                        defaultHammaliRatePerBag: 20,
+                        defaultTulaiRatePerBag: 5,
+                        mandiCessPercent: 0,
+                      }),
+                      defaultTareWeightKg: Number(e.target.value),
+                    },
+                  })
+                }
                 className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                हम्माली दर (₹ प्रति बोरी)
+                {language === 'hi' ? 'हम्माली दर (₹/बोरी)' : language === 'en' ? 'Hammali Rate (₹/Bag)' : 'Hammali Rate (₹/Bori)'}
               </label>
               <input
                 type="number"
-                placeholder="20"
-                defaultValue={20}
+                value={formData.mandiDefaults?.defaultHammaliRatePerBag ?? 20}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    mandiDefaults: {
+                      ...(formData.mandiDefaults || {
+                        defaultBagWeightKg: 50,
+                        defaultTareWeightKg: 1.0,
+                        defaultHammaliRatePerBag: 20,
+                        defaultTulaiRatePerBag: 5,
+                        mandiCessPercent: 0,
+                      }),
+                      defaultHammaliRatePerBag: Number(e.target.value),
+                    },
+                  })
+                }
                 className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                तुलाई दर (₹ प्रति बोरी)
+                {language === 'hi' ? 'तुलाई दर (₹/बोरी)' : language === 'en' ? 'Weighing Rate (₹/Bag)' : 'Tulai Rate (₹/Bori)'}
               </label>
               <input
                 type="number"
-                placeholder="5"
-                defaultValue={5}
+                value={formData.mandiDefaults?.defaultTulaiRatePerBag ?? 5}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    mandiDefaults: {
+                      ...(formData.mandiDefaults || {
+                        defaultBagWeightKg: 50,
+                        defaultTareWeightKg: 1.0,
+                        defaultHammaliRatePerBag: 20,
+                        defaultTulaiRatePerBag: 5,
+                        mandiCessPercent: 0,
+                      }),
+                      defaultTulaiRatePerBag: Number(e.target.value),
+                    },
+                  })
+                }
                 className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
             </div>
@@ -155,13 +212,13 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <Building className="w-4 h-4" />
-            2. मंडी फर्म व प्रोपराइटर विवरण (Mandi Firm Details)
+            2. {t('tab_firm_profile', language)}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                फर्म का नाम (Firm Name) *
+                {t('field_firm_name', language)} *
               </label>
               <input
                 type="text"
@@ -174,7 +231,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                मालिक / प्रोपराइटर का नाम (Owner Name) *
+                {t('proprietor', language)} / {language === 'hi' ? 'मालिक का नाम' : language === 'en' ? 'Owner Name' : 'Owner Ka Naam'} *
               </label>
               <input
                 type="text"
@@ -189,7 +246,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                GSTIN नंबर *
+                GSTIN *
               </label>
               <input
                 type="text"
@@ -202,7 +259,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                PAN नंबर *
+                PAN *
               </label>
               <input
                 type="text"
@@ -215,7 +272,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                मंडी अनुज्ञप्ति क्र. (License No.)
+                {t('mandi_license', language)}
               </label>
               <input
                 type="text"
@@ -226,10 +283,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                फोन नंबर (Phone)
+                {t('phone', language)}
               </label>
               <input
                 type="text"
@@ -241,7 +298,20 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                ईमेल (Email)
+                {language === 'hi' ? 'दुकान फोन / लैंडलाइन' : language === 'en' ? 'Alt / Landline Phone' : 'Alt / Dukaan Phone'}
+              </label>
+              <input
+                type="text"
+                placeholder="2055438"
+                value={formData.phoneExtra || ''}
+                onChange={(e) => setFormData({ ...formData, phoneExtra: e.target.value })}
+                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Email
               </label>
               <input
                 type="email"
@@ -253,7 +323,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                वेबसाइट (Website)
+                Website
               </label>
               <input
                 type="text"
@@ -266,7 +336,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              दुकान का पूरा पता (Address) *
+              {t('address', language)} *
             </label>
             <input
               type="text"
@@ -277,10 +347,10 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                शहर (City)
+                {language === 'hi' ? 'शहर' : language === 'en' ? 'City' : 'City'}
               </label>
               <input
                 type="text"
@@ -292,7 +362,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                राज्य (State)
+                {language === 'hi' ? 'राज्य' : language === 'en' ? 'State' : 'State'}
               </label>
               <select
                 value={formData.state}
@@ -309,12 +379,25 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                पिनकोड (Pincode)
+                {language === 'hi' ? 'पिनकोड' : language === 'en' ? 'Pincode' : 'Pincode'}
               </label>
               <input
                 type="text"
                 value={formData.pincode}
                 onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                {language === 'hi' ? 'न्यायालय क्षेत्र (Jurisdiction)' : language === 'en' ? 'Jurisdiction' : 'Jurisdiction'}
+              </label>
+              <input
+                type="text"
+                placeholder="Neemuch (M.P.)"
+                value={formData.jurisdiction || ''}
+                onChange={(e) => setFormData({ ...formData, jurisdiction: e.target.value })}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
             </div>
@@ -325,13 +408,13 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
-            3. बिल पर छपने वाले बैंक खाते का विवरण (Bank & UPI QR)
+            3. {t('tab_bank_qr', language)}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                बैंक का नाम (Bank Name) *
+                {language === 'hi' ? 'बैंक का नाम' : language === 'en' ? 'Bank Name' : 'Bank Ka Naam'} *
               </label>
               <input
                 type="text"
@@ -349,7 +432,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                खाता धारक का नाम (Acc Name) *
+                {language === 'hi' ? 'खाता धारक का नाम' : language === 'en' ? 'Account Holder Name' : 'Account Name'} *
               </label>
               <input
                 type="text"
@@ -369,7 +452,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                खाता नंबर (Account Number) *
+                {language === 'hi' ? 'खाता नंबर' : language === 'en' ? 'Account Number' : 'Account Number'} *
               </label>
               <input
                 type="text"
@@ -387,7 +470,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                IFSC कोड *
+                IFSC *
               </label>
               <input
                 type="text"
@@ -405,7 +488,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                UPI ID (QR कोड हेतु) *
+                UPI ID (QR Code) *
               </label>
               <input
                 type="text"
@@ -424,7 +507,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              बैंक शाखा (Branch Address)
+              {language === 'hi' ? 'बैंक शाखा का पता' : language === 'en' ? 'Bank Branch Address' : 'Bank Branch Address'}
             </label>
             <input
               type="text"
@@ -444,7 +527,7 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            4. डिफ़ॉल्ट इनवॉइस टेम्पलेट (Mandi Invoice Templates)
+            4. {t('design_template_label', language)}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -457,13 +540,13 @@ export default function SettingsPage() {
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-xs text-slate-900 dark:text-white">Classic Rathore GST</span>
+                <span className="font-bold text-xs text-slate-900 dark:text-white">Classic Rathore Mandi GST</span>
                 {formData.invoiceTemplate === 'classic_rathore' && (
                   <span className="text-[10px] font-bold text-indigo-600">✓ Selected</span>
                 )}
               </div>
               <p className="text-[11px] text-slate-500">
-                सैंपल PDF जैसा 1:1 क्लासिक लेआउट (Blue Bar, HSN, कट्ट व ट्रांसपोर्ट)
+                1:1 क्लासिक लेआउट (Blue Bar, HSN, कट्ट व ट्रांसपोर्ट)
               </p>
             </div>
 
@@ -482,7 +565,7 @@ export default function SettingsPage() {
                 )}
               </div>
               <p className="text-[11px] text-slate-500">
-                मॉडर्न कॉर्पोरेट लुक, गोल बॉर्डर्स व हाइलाइटेड समरी
+                मॉडर्न लुक, गोल बॉर्डर्स व हाइलाइटेड समरी
               </p>
             </div>
 
@@ -514,7 +597,7 @@ export default function SettingsPage() {
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg transition transform active:scale-95"
           >
             <Save className="w-5 h-5" />
-            सेटिंग सुरक्षित करें (Save Profile)
+            {t('btn_save_settings', language)}
           </button>
         </div>
       </form>

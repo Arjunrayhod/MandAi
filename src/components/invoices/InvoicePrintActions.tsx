@@ -1,9 +1,10 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { Invoice, CompanyProfile } from '@/lib/types';
 import { generateWhatsAppReminder } from '@/lib/gstUtils';
 import { useAppStore } from '@/lib/store';
+import { getTranslation } from '@/lib/translations';
 import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -20,7 +21,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
   currentTemplate,
   onTemplateChange,
 }) => {
-  const { recordPayment } = useAppStore();
+  const { recordPayment, language } = useAppStore();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [payAmount, setPayAmount] = useState(invoice.balanceAmount);
   const [payMode, setPayMode] = useState<'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque'>('Cash');
@@ -76,13 +77,13 @@ export const InvoicePrintActions: React.FC<Props> = ({
             className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 bg-slate-100 dark:bg-slate-700 px-3 py-2 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Invoices
+            {getTranslation('back_to_invoices_btn', language)}
           </Link>
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
           
           {/* Template Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">Design:</span>
+            <span className="text-xs font-medium text-slate-500">{getTranslation('design_template_label', language)}</span>
             <select
               value={currentTemplate}
               onChange={(e) => onTemplateChange(e.target.value)}
@@ -100,11 +101,11 @@ export const InvoicePrintActions: React.FC<Props> = ({
           {/* WhatsApp Share */}
           <div className="relative group">
             <button
-              onClick={() => handleWhatsApp('hi')}
+              onClick={() => handleWhatsApp(language === 'en' ? 'en' : 'hi')}
               className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-all shadow-xs"
             >
               <Share2 className="w-4 h-4" />
-              WhatsApp Reminder (हिंदी)
+              {getTranslation('whatsapp_reminder', language)}
             </button>
           </div>
 
@@ -115,7 +116,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
               className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-all shadow-xs"
             >
               <DollarSign className="w-4 h-4" />
-              Record Payment (भुगतान लें)
+              {getTranslation('record_payment_btn_text', language)}
             </button>
           )}
 
@@ -125,7 +126,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-sm"
           >
             <Printer className="w-4 h-4" />
-            Print / Save PDF
+            {getTranslation('print_save_pdf_text', language)}
           </button>
         </div>
       </div>
@@ -135,22 +136,22 @@ export const InvoicePrintActions: React.FC<Props> = ({
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-150">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-              भुगतान दर्ज करें (Record Payment)
+              {getTranslation('payment_modal_heading', language)}
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              बिल #{invoice.invoiceNumber} • {invoice.party.businessName} • कुल बाकी: ₹{invoice.balanceAmount.toFixed(2)}
+              #{invoice.invoiceNumber} • {invoice.party.businessName} • {getTranslation('closing_due', language)}: ₹{invoice.balanceAmount.toFixed(2)}
             </p>
 
             {paySuccess ? (
               <div className="py-8 text-center text-emerald-600 space-y-2">
                 <CheckCircle className="w-12 h-12 mx-auto" />
-                <p className="font-bold text-base">भुगतान सफलतापूर्वक दर्ज हो गया!</p>
+                <p className="font-bold text-base">{getTranslation('payment_recorded_success_msg', language)}</p>
               </div>
             ) : (
               <form onSubmit={submitPayment} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    जमा राशि (Amount in ₹)
+                    {getTranslation('payment_amount_label', language)}
                   </label>
                   <input
                     type="number"
@@ -166,23 +167,23 @@ export const InvoicePrintActions: React.FC<Props> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      भुगतान माध्यम (Mode)
+                      {getTranslation('payment_mode_dropdown', language)}
                     </label>
                     <select
                       value={payMode}
                       onChange={(e) => setPayMode(e.target.value as any)}
                       className="w-full text-xs font-medium bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="Cash">Cash (रोकड़)</option>
-                      <option value="UPI">UPI (GooglePay/PhonePe)</option>
-                      <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
-                      <option value="Cheque">Cheque (चेक)</option>
+                      <option value="Cash">{getTranslation('mode_cash', language)}</option>
+                      <option value="UPI">{getTranslation('mode_upi', language)}</option>
+                      <option value="Bank Transfer">{getTranslation('mode_bank', language)}</option>
+                      <option value="Cheque">{getTranslation('mode_cheque', language)}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      रेफरेंस / UTR / चेक नं.
+                      {getTranslation('payment_ref_label', language)}
                     </label>
                     <input
                       type="text"
@@ -200,13 +201,13 @@ export const InvoicePrintActions: React.FC<Props> = ({
                     onClick={() => setShowPaymentModal(false)}
                     className="w-1/2 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                   >
-                    रद्द करें (Cancel)
+                    {getTranslation('cancel_action', language)}
                   </button>
                   <button
                     type="submit"
                     className="w-1/2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm"
                   >
-                    पुष्टि करें (Confirm)
+                    {getTranslation('confirm_action', language)}
                   </button>
                 </div>
               </form>
@@ -217,3 +218,4 @@ export const InvoicePrintActions: React.FC<Props> = ({
     </>
   );
 };
+

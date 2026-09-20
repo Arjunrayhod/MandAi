@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { MandiSaudaSlip } from '@/lib/types';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency } from '@/lib/gstUtils';
 import { 
   ScrollText, 
@@ -21,7 +22,7 @@ import {
 
 export default function SaudaParchaPage() {
   const router = useRouter();
-  const { saudaSlips, parties, products, company, addSaudaSlip } = useAppStore();
+  const { saudaSlips, parties, products, company, addSaudaSlip, language } = useAppStore();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedSlipForPrint, setSelectedSlipForPrint] = useState<MandiSaudaSlip | null>(null);
@@ -78,10 +79,10 @@ export default function SaudaParchaPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <ScrollText className="w-7 h-7 text-amber-500" />
-            मंडी सौदा पर्चा व तौल पर्ची (Sauda Slips)
+            {t('sauda_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            कच्चा सौदा, मंडी नीलामी पर्चा, तौल कटाई, हम्माली व पक्का बिल कन्वर्जन
+            {t('sauda_subtitle', language)}
           </p>
         </div>
 
@@ -90,34 +91,46 @@ export default function SaudaParchaPage() {
           className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
-          + नया सौदा पर्चा बनाएं (New Sauda Slip)
+          {t('btn_new_sauda', language)}
         </button>
       </div>
 
       {/* Summary KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">कुल सौदा पर्चे (Total Slips)</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {language === 'hi' ? 'कुल सौदा पर्चे' : language === 'en' ? 'Total Sauda Slips' : 'Total Sauda Parche'}
+          </span>
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-            {saudaSlips.length} <span className="text-xs font-medium text-slate-400">पर्चे</span>
+            {saudaSlips.length} <span className="text-xs font-medium text-slate-400">{language === 'hi' ? 'पर्चे' : 'Slips'}</span>
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">मंडी यार्ड नीलाम व खरीद</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'मंडी यार्ड नीलाम व खरीद' : language === 'en' ? 'Mandi yard trades' : 'Mandi yard trades'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">कुल सौदा बोरियां (Bags)</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {t('card_total_bags', language)}
+          </span>
           <h3 className="text-2xl font-black text-amber-600 mt-1">
-            {saudaSlips.reduce((sum, s) => sum + s.bags, 0)} <span className="text-xs font-medium text-slate-400">बोरी</span>
+            {saudaSlips.reduce((sum, s) => sum + s.bags, 0)} <span className="text-xs font-medium text-slate-400">{t('bags_count', language)}</span>
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">नीलामी में खरीदी गई</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'नीलामी में खरीदी गई' : language === 'en' ? 'Purchased in auction' : 'Nilami me kharidi gayi'}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500">सौदा कुल देय राशि</span>
+          <span className="text-xs font-semibold text-slate-500">
+            {t('col_net_payable', language)}
+          </span>
           <h3 className="text-2xl font-black text-emerald-600 mt-1">
             {formatIndianCurrency(saudaSlips.reduce((sum, s) => sum + s.netPayable, 0))}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">कटौती पश्चात शुद्ध देय</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'कटौती पश्चात शुद्ध देय' : language === 'en' ? 'Net after deductions' : 'Katoti baad shuddh deya'}
+          </p>
         </div>
       </div>
 
@@ -127,16 +140,16 @@ export default function SaudaParchaPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                <th className="py-3 px-4">सौदा नं.</th>
-                <th className="py-3 px-4">तारीख</th>
-                <th className="py-3 px-4">पार्टी / किसान</th>
-                <th className="py-3 px-4">जिंस</th>
-                <th className="py-3 px-4 text-center">बोरी</th>
-                <th className="py-3 px-4 text-right">शुद्ध वजन (क्विंटल)</th>
-                <th className="py-3 px-4 text-right">भाव (प्रति क्विंटल)</th>
-                <th className="py-3 px-4 text-right">कटौती / हम्माली</th>
-                <th className="py-3 px-4 text-right">शुद्ध देय (Net ₹)</th>
-                <th className="py-3 px-4 text-right">एक्शन</th>
+                <th className="py-3 px-4">{t('sauda_slip_no', language)}</th>
+                <th className="py-3 px-4">{t('date', language)}</th>
+                <th className="py-3 px-4">{t('col_party', language)}</th>
+                <th className="py-3 px-4">{t('col_commodity', language)}</th>
+                <th className="py-3 px-4 text-center">{t('bags_count', language)}</th>
+                <th className="py-3 px-4 text-right">{t('net_weight_qtl', language)}</th>
+                <th className="py-3 px-4 text-right">{t('col_bhaav', language)}</th>
+                <th className="py-3 px-4 text-right">{t('katoti_other_charges', language)}</th>
+                <th className="py-3 px-4 text-right">{t('col_net_payable', language)}</th>
+                <th className="py-3 px-4 text-right">{t('actions', language)}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -144,7 +157,7 @@ export default function SaudaParchaPage() {
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400">
                     <Scale className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-500" />
-                    कोई सौदा पर्चा अभी नहीं बनाया गया है। ऊपर + बटन से नया पर्चा बनाएं।
+                    {language === 'hi' ? 'कोई सौदा पर्चा अभी नहीं बनाया गया है।' : language === 'en' ? 'No sauda slips created yet.' : 'Koi sauda parcha nahi banaya gaya hai.'}
                   </td>
                 </tr>
               ) : (
@@ -164,7 +177,7 @@ export default function SaudaParchaPage() {
                       {slip.commodity}
                     </td>
                     <td className="py-3 px-4 text-center font-bold">
-                      {slip.bags} बोरी
+                      {slip.bags}
                     </td>
                     <td className="py-3 px-4 text-right font-medium">
                       {slip.netWeightQuintal} Qtl
@@ -185,14 +198,14 @@ export default function SaudaParchaPage() {
                           className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white font-bold text-[11px] transition"
                         >
                           <Printer className="w-3 h-3 inline mr-1" />
-                          पर्चा प्रिंट
+                          {t('print', language)}
                         </button>
                         <button
                           onClick={() => convertToInvoice(slip)}
                           className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-bold text-[11px] transition shadow-xs flex items-center gap-1"
                         >
                           <Receipt className="w-3 h-3" />
-                          पक्का बिल बनाएं
+                          {t('convert_to_invoice', language)}
                         </button>
                       </div>
                     </td>

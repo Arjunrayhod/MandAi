@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { getTranslation, t } from '@/lib/translations';
 import { formatIndianCurrency } from '@/lib/gstUtils';
 import { 
   Wallet, 
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function MoneyPage() {
-  const { cashInHand, bankAccounts, transactions, addTransaction, addBankAccount } = useAppStore();
+  const { cashInHand, bankAccounts, transactions, addTransaction, addBankAccount, language } = useAppStore();
 
   const [showTxModal, setShowTxModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
@@ -86,10 +87,10 @@ export default function MoneyPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Wallet className="w-7 h-7 text-indigo-600" />
-            रोकड़ बही व बैंक खाता (Money & Bank Accounts)
+            {t('money_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            मंडी रोकड़ (Cash In Hand), हम्माली-भाड़ा खर्च, बैंक खाते व फंड ट्रांसफर
+            {t('money_subtitle', language)}
           </p>
         </div>
 
@@ -99,7 +100,7 @@ export default function MoneyPage() {
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            + रोकड़ खर्च / आमदनी (Record Tx)
+            {t('record_tx', language)}
           </button>
         </div>
       </div>
@@ -109,7 +110,7 @@ export default function MoneyPage() {
         {/* Cash in hand */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">दुकान रोकड़ (Cash in Hand)</span>
+            <span className="text-xs font-semibold text-slate-500">{t('cash_in_hand', language)}</span>
             <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40">
               <Wallet className="w-5 h-5" />
             </span>
@@ -117,13 +118,15 @@ export default function MoneyPage() {
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-2">
             {formatIndianCurrency(cashInHand)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">दुकान की गद्दी पर रोकड़</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'दुकान की गद्दी पर रोकड़' : language === 'en' ? 'Physical cash in shop' : 'Dukaan ki rokad'}
+          </p>
         </div>
 
         {/* Bank Total */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">कुल बैंक बैलेंस (All Banks)</span>
+            <span className="text-xs font-semibold text-slate-500">{t('bank_balance', language)}</span>
             <span className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/40">
               <Building2 className="w-5 h-5" />
             </span>
@@ -131,13 +134,15 @@ export default function MoneyPage() {
           <h3 className="text-2xl font-black text-indigo-600 mt-2">
             {formatIndianCurrency(totalBankBalance)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">{bankAccounts.length} बैंक खाते जुड़े हैं</p>
+          <p className="text-[11px] text-slate-400 mt-1">{bankAccounts.length} {language === 'hi' ? 'बैंक खाते जुड़े हैं' : language === 'en' ? 'Bank accounts linked' : 'Bank accounts linked'}</p>
         </div>
 
         {/* Total Liquidity */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">कुल उपलब्ध नकदी (Total Liquidity)</span>
+            <span className="text-xs font-semibold text-slate-500">
+              {language === 'hi' ? 'कुल उपलब्ध नकदी' : language === 'en' ? 'Total Net Liquidity' : 'Total Net Cash'}
+            </span>
             <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40">
               <DollarSign className="w-5 h-5" />
             </span>
@@ -145,7 +150,9 @@ export default function MoneyPage() {
           <h3 className="text-2xl font-black text-emerald-600 mt-2">
             {formatIndianCurrency(totalNetLiquidity)}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1">रोकड़ + बैंक राशि</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            {language === 'hi' ? 'रोकड़ + बैंक राशि' : language === 'en' ? 'Cash + Bank accounts' : 'Rokad + Bank balance'}
+          </p>
         </div>
       </div>
 
@@ -154,13 +161,13 @@ export default function MoneyPage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Building2 className="w-4 h-4 text-indigo-600" />
-            बैंक खाते (Registered Bank Accounts)
+            {t('bank_accounts', language)}
           </h2>
           <button
             onClick={() => setShowBankModal(true)}
             className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
           >
-            + नया बैंक खाता जोड़ें
+            {t('btn_add_bank', language)}
           </button>
         </div>
 
@@ -175,7 +182,7 @@ export default function MoneyPage() {
                   <span className="text-sm font-bold text-sky-400">{acc.bankName}</span>
                   {acc.isDefault && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Primary (बिल पर प्रिंट)
+                      {language === 'hi' ? 'Primary (बिल पर प्रिंट)' : 'Primary Account'}
                     </span>
                   )}
                 </div>
@@ -190,7 +197,7 @@ export default function MoneyPage() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">वर्तमान बैलेंस:</span>
+                <span className="text-xs text-slate-400">{t('closing_due', language)}:</span>
                 <span className="text-lg font-black text-white font-mono">
                   {formatIndianCurrency(acc.currentBalance)}
                 </span>
@@ -204,18 +211,18 @@ export default function MoneyPage() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs p-5">
         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
           <Receipt className="w-4 h-4 text-indigo-600" />
-          रोकड़ व बैंक लेन-देन बही (Transaction Daybook)
+          {t('daybook', language)}
         </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                <th className="py-2.5 px-3">तारीख</th>
-                <th className="py-2.5 px-3">प्रकार (Type)</th>
-                <th className="py-2.5 px-3">कैटेगरी / मद</th>
-                <th className="py-2.5 px-3">विवरण / नोट</th>
-                <th className="py-2.5 px-3 text-right">राशि (Amount)</th>
+                <th className="py-2.5 px-3">{t('col_date', language)}</th>
+                <th className="py-2.5 px-3">{t('col_tx_type', language)}</th>
+                <th className="py-2.5 px-3">{language === 'hi' ? 'कैटेगरी / मद' : language === 'en' ? 'Category' : 'Category'}</th>
+                <th className="py-2.5 px-3">{t('col_particulars', language)}</th>
+                <th className="py-2.5 px-3 text-right">{t('col_amount', language)}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -234,10 +241,10 @@ export default function MoneyPage() {
                       }`}>
                         {isPositive ? <ArrowDownRight className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
                         {tx.type === 'income' || tx.type === 'cash_in'
-                          ? 'Cash In'
+                          ? (language === 'hi' ? 'आवक' : 'Cash In')
                           : tx.type === 'bank_deposit'
-                          ? 'Bank Deposit'
-                          : 'Cash Out / Expense'}
+                          ? (language === 'hi' ? 'बैंक जमा' : 'Bank Deposit')
+                          : (language === 'hi' ? 'जावक / खर्च' : 'Cash Out')}
                       </span>
                     </td>
                     <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">

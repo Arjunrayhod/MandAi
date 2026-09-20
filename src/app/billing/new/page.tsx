@@ -252,6 +252,13 @@ export default function CreateInvoicePage() {
     router.push(`/billing/${newInvoice.id}`);
   };
 
+  const docTitleMap: Record<DocumentType, string> = {
+    tax_invoice: getTranslation('doc_tax_invoice', language),
+    quotation_estimate: getTranslation('doc_estimate', language),
+    delivery_challan: getTranslation('doc_challan', language),
+    credit_note: getTranslation('doc_credit_note', language),
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Top Header with GoGST Doc Type Selector */}
@@ -266,16 +273,10 @@ export default function CreateInvoicePage() {
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Receipt className="w-6 h-6 text-indigo-600" />
-              {docType === 'tax_invoice'
-                ? 'नया GST टैक्स इनवॉइस (Tax Invoice)'
-                : docType === 'quotation_estimate'
-                ? 'कोटेशन / कच्चा बिल (Estimate / Quotation)'
-                : docType === 'delivery_challan'
-                ? 'डिलीवरी चालान (Delivery Challan)'
-                : 'क्रेडिट नोट / बिक्री वापसी (Credit Note)'}
+              {docTitleMap[docType]}
             </h1>
             <p className="text-xs text-slate-500">
-              {company.name} • GoGST & Rathore Trading Architecture
+              {company.name} • {getTranslation('mandi_edition', language)}
             </p>
           </div>
         </div>
@@ -292,10 +293,10 @@ export default function CreateInvoicePage() {
       {/* GoGST Document Type Selector Bar */}
       <div className="bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-wrap gap-2">
         {[
-          { id: 'tax_invoice', label: 'टैक्स इनवॉइस (GST Tax Invoice)', icon: Receipt },
-          { id: 'quotation_estimate', label: 'कोटेशन / एस्टीमेट (Quotation)', icon: FileText },
-          { id: 'delivery_challan', label: 'डिलीवरी चालान (Delivery Challan)', icon: PackageCheck },
-          { id: 'credit_note', label: 'क्रेडिट नोट (Credit Note / Return)', icon: RotateCcw },
+          { id: 'tax_invoice', label: getTranslation('doc_tax_invoice_full', language), icon: Receipt },
+          { id: 'quotation_estimate', label: getTranslation('doc_estimate_full', language), icon: FileText },
+          { id: 'delivery_challan', label: getTranslation('doc_challan_full', language), icon: PackageCheck },
+          { id: 'credit_note', label: getTranslation('doc_credit_note_full', language), icon: RotateCcw },
         ].map((dt) => {
           const Icon = dt.icon;
           const isSelected = docType === dt.id;
@@ -322,7 +323,7 @@ export default function CreateInvoicePage() {
         {/* Invoice Meta */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
           <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            1. बिल विवरण (Invoice Info)
+            {getTranslation('heading_invoice_info', language)}
           </h3>
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
@@ -368,7 +369,7 @@ export default function CreateInvoicePage() {
         {/* Customer / Party Select */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
           <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            2. पार्टी / खरीदार (Customer Party)
+            {getTranslation('heading_party_info', language)}
           </h3>
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
@@ -389,7 +390,7 @@ export default function CreateInvoicePage() {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              Place of Supply (आपूर्ति स्थान)
+              {getTranslation('field_place_of_supply', language)}
             </label>
             <input
               type="text"
@@ -404,12 +405,12 @@ export default function CreateInvoicePage() {
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
           <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
             <Truck className="w-4 h-4" />
-            3. E-Way बिल व गाड़ी परिवहन (Transport)
+            {getTranslation('heading_transport_info', language)}
           </h3>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                गाड़ी नं. (Vehicle)
+                {getTranslation('label_vehicle_no', language)}
               </label>
               <input
                 type="text"
@@ -421,7 +422,7 @@ export default function CreateInvoicePage() {
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                दूरी (Distance KM)
+                {getTranslation('label_distance_km', language)}
               </label>
               <input
                 type="number"
@@ -436,7 +437,7 @@ export default function CreateInvoicePage() {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                ट्रांसपोर्टर का नाम
+                {getTranslation('label_transporter_name', language)}
               </label>
               <input
                 type="text"
@@ -448,7 +449,7 @@ export default function CreateInvoicePage() {
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                GST प्रकार
+                {getTranslation('label_gst_type', language)}
               </label>
               <button
                 type="button"
@@ -475,7 +476,7 @@ export default function CreateInvoicePage() {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Wheat className="w-4 h-4 text-indigo-600" />
-            {getTranslation('item_name', language)} & Commodities
+            {getTranslation('item_table_heading', language)}
           </h3>
           <button
             type="button"
@@ -483,7 +484,7 @@ export default function CreateInvoicePage() {
             className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded-lg transition"
           >
             <Plus className="w-3.5 h-3.5" />
-            + नई लाइन जोड़ें (Add Item)
+            {getTranslation('btn_add_item_line', language)}
           </button>
         </div>
 
@@ -492,15 +493,15 @@ export default function CreateInvoicePage() {
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
                 <th className="py-2 px-2 w-8">#</th>
-                <th className="py-2 px-2 min-w-[180px]">आइटम / जिंस का नाम</th>
-                <th className="py-2 px-2 w-24">HSN/SAC</th>
-                <th className="py-2 px-2 w-20">बोरी (Bags)</th>
-                <th className="py-2 px-2 w-24">मात्रा (Qty)</th>
-                <th className="py-2 px-2 w-20">यूनिट</th>
-                <th className="py-2 px-2 w-24">भाव (Rate ₹)</th>
-                <th className="py-2 px-2 text-right w-28">कर योग्य (Taxable)</th>
-                <th className="py-2 px-2 text-right w-28">GST Tax</th>
-                <th className="py-2 px-2 text-right w-32">कुल (Total)</th>
+                <th className="py-2 px-2 min-w-[180px]">{getTranslation('col_item_name', language)}</th>
+                <th className="py-2 px-2 w-24">{getTranslation('col_hsn', language)}</th>
+                <th className="py-2 px-2 w-20">{getTranslation('col_bags', language)}</th>
+                <th className="py-2 px-2 w-24">{getTranslation('col_qty_unit', language)}</th>
+                <th className="py-2 px-2 w-20">{getTranslation('col_unit', language) || 'यूनिट'}</th>
+                <th className="py-2 px-2 w-24">{getTranslation('col_rate', language)}</th>
+                <th className="py-2 px-2 text-right w-28">{getTranslation('col_taxable', language)}</th>
+                <th className="py-2 px-2 text-right w-28">{getTranslation('col_tax_rate', language)}</th>
+                <th className="py-2 px-2 text-right w-32">{getTranslation('col_total_amount', language)}</th>
                 <th className="py-2 px-2 w-10"></th>
               </tr>
             </thead>
@@ -516,7 +517,7 @@ export default function CreateInvoicePage() {
                       onChange={(e) => handleProductSelect(idx, e.target.value)}
                       className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5"
                     >
-                      <option value="">-- जिंस चुनें --</option>
+                      <option value="">{getTranslation('select_commodity_placeholder', language)}</option>
                       {products.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} {p.hindiName ? `(${p.hindiName})` : ''} - ₹{p.sellingPrice}
@@ -628,7 +629,7 @@ export default function CreateInvoicePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Transport charges (भाड़ा / परिवहन)
+                {getTranslation('label_transport_charges_box', language)}
               </label>
               <input
                 type="number"
@@ -641,7 +642,7 @@ export default function CreateInvoicePage() {
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                कटौती / अन्य खर्च (कट्ट / Katoti)
+                {getTranslation('label_katoti_charges_box', language)}
               </label>
               <input
                 type="number"
@@ -655,7 +656,7 @@ export default function CreateInvoicePage() {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              अतिरिक्त खर्च लेबल (Other Charges Label)
+              {getTranslation('label_other_charges_text', language)}
             </label>
             <input
               type="text"
@@ -667,11 +668,11 @@ export default function CreateInvoicePage() {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              विशेष रिमार्क / सौदा विवरण (Notes)
+              {getTranslation('label_notes_remark', language)}
             </label>
             <textarea
               rows={2}
-              placeholder="मंडी सौदा पर्चा संदर्भ या शर्त..."
+              placeholder={language === 'hi' ? 'मंडी सौदा पर्चा संदर्भ या शर्त...' : language === 'en' ? 'Mandi agreement terms or notes...' : 'Mandi sauda parcha shart ya notes...'}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
@@ -683,7 +684,7 @@ export default function CreateInvoicePage() {
         <div className="md:col-span-5 bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-4">
           <div>
             <h3 className="text-xs font-bold uppercase text-indigo-400 tracking-wider mb-4">
-              बिल का कुल सारांश (Bill Summary)
+              {getTranslation('bill_summary_heading', language)}
             </h3>
 
             <div className="space-y-2.5 text-xs text-slate-300">
@@ -700,7 +701,7 @@ export default function CreateInvoicePage() {
                 <span className="font-mono">₹{otherCharges.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-sky-400 pt-1 border-t border-slate-700">
-                <span>कुल कर योग्य मूल्य:</span>
+                <span>{getTranslation('label_total_taxable_value', language)}</span>
                 <span className="font-mono">₹{totalTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
 
@@ -723,7 +724,7 @@ export default function CreateInvoicePage() {
               )}
 
               <div className="flex justify-between font-bold text-slate-200">
-                <span>कुल GST टैक्स:</span>
+                <span>{getTranslation('label_total_gst_tax', language)}</span>
                 <span className="font-mono">₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>

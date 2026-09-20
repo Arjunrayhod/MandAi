@@ -180,12 +180,12 @@ export default function DashboardPage() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                  <th className="py-2.5 px-3">{getTranslation('invoice_number', language)}</th>
-                  <th className="py-2.5 px-3">Party / Firm</th>
+                  <th className="py-2.5 px-3">{getTranslation('col_bill_no', language)}</th>
+                  <th className="py-2.5 px-3">{getTranslation('col_party', language)}</th>
                   <th className="py-2.5 px-3">{getTranslation('invoice_date', language)}</th>
-                  <th className="py-2.5 px-3 text-right">{getTranslation('grand_total', language)}</th>
-                  <th className="py-2.5 px-3 text-center">Status</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                  <th className="py-2.5 px-3 text-right">{getTranslation('col_total_amount', language)}</th>
+                  <th className="py-2.5 px-3 text-center">{getTranslation('status', language)}</th>
+                  <th className="py-2.5 px-3 text-right">{getTranslation('actions', language)}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                           : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
                       }`}>
-                        {inv.status === 'paid' ? 'Paid' : (language === 'hi' ? 'बाकी (Unpaid)' : 'Unpaid')}
+                        {inv.status === 'paid' ? getTranslation('paid', language) : getTranslation('pending', language)}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -263,7 +263,7 @@ export default function DashboardPage() {
                       {formatIndianCurrency(party.currentBalance)}
                     </span>
                     <span className="text-[9px] text-slate-400">
-                      {language === 'hi' ? 'लेना बाकी' : language === 'en' ? 'Due' : 'Lena Baaki'}
+                      {getTranslation('balance_to_receive', language)}
                     </span>
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function DashboardPage() {
               href="/parties"
               className="w-full block text-center py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-300 font-bold text-xs rounded-xl transition"
             >
-              {getTranslation('add_party', language)}
+              {getTranslation('add_party_btn', language)}
             </Link>
           </div>
         </div>
