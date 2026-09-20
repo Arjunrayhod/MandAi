@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { CompanyProfile, BusinessType } from '@/lib/types';
+import { CompanyProfile } from '@/lib/types';
 import { INDIAN_STATES } from '@/lib/gstUtils';
 import { BackupRestoreModal } from '@/components/common/BackupRestoreModal';
 import { 
@@ -10,16 +10,13 @@ import {
   Building, 
   CreditCard, 
   FileText, 
-  Store, 
   Save, 
   RotateCcw, 
   CheckCircle,
   Database,
   Wheat,
-  ShoppingBag,
-  Shirt,
-  Pill,
-  Wrench
+  Scale,
+  Percent
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -58,11 +55,11 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Settings className="w-7 h-7 text-indigo-600" />
-            दुकान व फर्म सेटिंग (Shop Profile & Config)
+            <Wheat className="w-7 h-7 text-indigo-600" />
+            मंडी फर्म व व्यापार सेटिंग (Mandi Profile & Setup)
           </h1>
           <p className="text-xs text-slate-500">
-            मंडी फर्म प्रोफ़ाइल, GSTIN, बैंक खाता, UPI QR कोड और इनवॉइस डिज़ाइन
+            कृषि उपज मंडी फर्म प्रोफ़ाइल, GSTIN, बैंक खाता, UPI QR कोड और आढ़त डिफ़ॉल्ट्स
           </p>
         </div>
 
@@ -90,58 +87,81 @@ export default function SettingsPage() {
       {savedSuccess && (
         <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
           <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-          फर्म प्रोफ़ाइल और सेटिंग सफलतापूर्वक सुरक्षित कर ली गई है!
+          मंडी फर्म प्रोफ़ाइल और सेटिंग सफलतापूर्वक सुरक्षित कर ली गई है!
         </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Industry Switcher */}
+        {/* 1. Mandi Trade Defaults */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
-            <Store className="w-4 h-4" />
-            दुकान / बिजनेस प्रकार (Custom Shop Mode)
+            <Scale className="w-4 h-4 text-amber-500" />
+            1. मंडी आढ़त व तौल डिफ़ॉल्ट सेटिंग (Mandi Trade Defaults)
           </h3>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {[
-              { id: 'mandi_vyapar', label: 'मंडी व्यापार', icon: Wheat, desc: 'बोरी + वजन + कट्ट + हम्माली' },
-              { id: 'kirana', label: 'किराना स्टोर', icon: ShoppingBag, desc: 'बारकोड + लूज स्टॉक + खाता' },
-              { id: 'clothing', label: 'कपड़ा स्टोर', icon: Shirt, desc: 'साइज़ + कलर + वैरियंट' },
-              { id: 'medical', label: 'मेडिकल स्टोर', icon: Pill, desc: 'बैच नं. + एक्सपायरी डेट' },
-              { id: 'hardware', label: 'हार्डवेयर', icon: Wrench, desc: 'HSN + यूनिट कन्वर्जन' },
-            ].map((ind) => {
-              const Icon = ind.icon;
-              const isSelected = formData.businessType === ind.id;
-              return (
-                <div
-                  key={ind.id}
-                  onClick={() => setFormData({ ...formData, businessType: ind.id as BusinessType })}
-                  className={`cursor-pointer p-3 rounded-xl border-2 transition text-center flex flex-col items-center justify-between ${
-                    isSelected
-                      ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/60 shadow-xs'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <Icon className={`w-6 h-6 mb-1.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`} />
-                  <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight">{ind.label}</p>
-                  <p className="text-[9.5px] text-slate-500 mt-1">{ind.desc}</p>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                औसत बोरी वजन (Kg per Bag)
+              </label>
+              <input
+                type="number"
+                placeholder="50"
+                defaultValue={50}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                बारदान काट (Tare Kg per Bag)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                placeholder="1.0"
+                defaultValue={1.0}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                हम्माली दर (₹ प्रति बोरी)
+              </label>
+              <input
+                type="number"
+                placeholder="20"
+                defaultValue={20}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                तुलाई दर (₹ प्रति बोरी)
+              </label>
+              <input
+                type="number"
+                placeholder="5"
+                defaultValue={5}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+              />
+            </div>
           </div>
         </div>
 
-        {/* 1. Firm Details */}
+        {/* 2. Firm Details */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <Building className="w-4 h-4" />
-            1. फर्म व प्रोपराइटर विवरण (Business Details)
+            2. मंडी फर्म व प्रोपराइटर विवरण (Mandi Firm Details)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                फर्म / दुकान का नाम (Firm Name) *
+                फर्म का नाम (Firm Name) *
               </label>
               <input
                 type="text"
@@ -301,11 +321,11 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 2. Bank Details & UPI */}
+        {/* 3. Bank Details & UPI */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
-            2. बिल पर छपने वाले बैंक खाते का विवरण (Print On Invoice Bank & UPI)
+            3. बिल पर छपने वाले बैंक खाते का विवरण (Bank & UPI QR)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -420,11 +440,11 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 3. Invoice Template Selector */}
+        {/* 4. Invoice Template Selector */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
           <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            3. डिफ़ॉल्ट इनवॉइस टेम्पलेट (Invoice Template)
+            4. डिफ़ॉल्ट इनवॉइस टेम्पलेट (Mandi Invoice Templates)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
