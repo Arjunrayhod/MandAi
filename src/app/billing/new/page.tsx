@@ -444,548 +444,593 @@ export default function CreateInvoicePage() {
         })}
       </div>
 
-      {/* Bill & Party Meta Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Invoice Meta */}
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            {getTranslation('heading_invoice_info', language)}
-          </h3>
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              {getTranslation('invoice_number', language)}
-            </label>
-            <input
-              type="text"
-              required
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="w-full text-xs font-bold font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-            />
-          </div>
+      {/* 2-Column Responsive Layout with Sticky Live Calculation Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (Main Form): Meta, Commodities, Surcharges */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Bill & Party Meta Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Invoice Meta */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
+                {getTranslation('heading_invoice_info', language)}
+              </h3>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  {getTranslation('invoice_number', language)}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  className="w-full text-xs font-bold font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('invoice_date', language)}
-              </label>
-              <input
-                type="date"
-                required
-                value={invoiceDate}
-                onChange={(e) => setInvoiceDate(e.target.value)}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('invoice_date', language)}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('due_date', language)}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 text-rose-600 font-medium"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('due_date', language)}
-              </label>
-              <input
-                type="date"
-                required
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 text-rose-600 font-medium"
-              />
+
+            {/* Customer / Party Select with Quick Add */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
+                  {getTranslation('heading_party_info', language)}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickPartyModal(true)}
+                  className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-1 rounded-lg transition"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  {getTranslation('quick_add_party_btn', language) || '+ नई पार्टी'}
+                </button>
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  {getTranslation('select_party', language)}
+                </label>
+                <select
+                  value={selectedPartyId}
+                  onChange={(e) => handlePartySelect(e.target.value)}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                >
+                  {parties.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.businessName || p.name} ({p.city}) {p.mandiShopNo ? `[${p.mandiShopNo}]` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  {getTranslation('field_place_of_supply', language)}
+                </label>
+                <input
+                  type="text"
+                  value={placeOfSupply}
+                  onChange={(e) => setPlaceOfSupply(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+            </div>
+
+            {/* GoGST Transport & E-Way Fields */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
+                <Truck className="w-4 h-4" />
+                {getTranslation('heading_transport_info', language)}
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('label_vehicle_no', language)}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="MP 44 GA 8819"
+                    value={vehicleNo}
+                    onChange={(e) => setVehicleNo(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 uppercase font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('label_distance_km', language)}
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="120 Km"
+                    value={distanceKm}
+                    onChange={(e) => setDistanceKm(Number(e.target.value))}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('label_transporter_name', language)}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Transporter Name"
+                    value={transporterName}
+                    onChange={(e) => setTransporterName(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    {getTranslation('label_gst_type', language)}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const toggled = !isInterState;
+                      setIsInterState(toggled);
+                      recalcItems(items, toggled);
+                    }}
+                    className={`w-full py-2 px-1 text-[10px] font-bold rounded-xl border transition ${
+                      isInterState
+                        ? 'bg-purple-100 border-purple-300 text-purple-700'
+                        : 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                    }`}
+                  >
+                    {isInterState ? 'IGST (Inter-State)' : 'CGST+SGST (Local M.P.)'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Customer / Party Select with Quick Add */}
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-              {getTranslation('heading_party_info', language)}
-            </h3>
-            <button
-              type="button"
-              onClick={() => setShowQuickPartyModal(true)}
-              className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-1 rounded-lg transition"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              {getTranslation('quick_add_party_btn', language) || '+ नई पार्टी'}
-            </button>
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              {getTranslation('select_party', language)}
-            </label>
-            <select
-              value={selectedPartyId}
-              onChange={(e) => handlePartySelect(e.target.value)}
-              className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-            >
-              {parties.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.businessName || p.name} ({p.city}) {p.mandiShopNo ? `[${p.mandiShopNo}]` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Commodity Items Table */}
+          <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
+                  <Wheat className="w-4 h-4 text-amber-500" />
+                  {getTranslation('item_table_heading', language)}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  {language === 'hi' ? 'जिंस चुनें या नई पंक्ति जोड़ें। वजन/भाव बदलते ही साइड में कुल योग स्वतः अपडेट होगा।' : 'Add commodities and see live recalculation in the side summary.'}
+                </p>
+              </div>
 
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              {getTranslation('field_place_of_supply', language)}
-            </label>
-            <input
-              type="text"
-              value={placeOfSupply}
-              onChange={(e) => setPlaceOfSupply(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-            />
-          </div>
-        </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickProdModal(true)}
+                  className="flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {getTranslation('quick_add_commodity_btn', language) || '+ Add Commodity'}
+                </button>
 
-        {/* GoGST Transport & E-Way Fields */}
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
-            <Truck className="w-4 h-4" />
-            {getTranslation('heading_transport_info', language)}
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('label_vehicle_no', language)}
-              </label>
-              <input
-                type="text"
-                placeholder="MP 44 GA 8819"
-                value={vehicleNo}
-                onChange={(e) => setVehicleNo(e.target.value)}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 uppercase font-bold"
-              />
+                <button
+                  type="button"
+                  onClick={addItemRow}
+                  className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {getTranslation('btn_add_item_line', language)}
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('label_distance_km', language)}
-              </label>
-              <input
-                type="number"
-                placeholder="120 Km"
-                value={distanceKm}
-                onChange={(e) => setDistanceKm(Number(e.target.value))}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('label_transporter_name', language)}
-              </label>
-              <input
-                type="text"
-                placeholder="Transporter Name"
-                value={transporterName}
-                onChange={(e) => setTransporterName(e.target.value)}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                {getTranslation('label_gst_type', language)}
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  const toggled = !isInterState;
-                  setIsInterState(toggled);
-                  recalcItems(items, toggled);
-                }}
-                className={`w-full py-2 px-1 text-[10px] font-bold rounded-xl border transition ${
-                  isInterState
-                    ? 'bg-purple-100 border-purple-300 text-purple-700'
-                    : 'bg-emerald-100 border-emerald-300 text-emerald-700'
-                }`}
-              >
-                {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Items Section */}
-      <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Wheat className="w-4 h-4 text-indigo-600" />
-            {getTranslation('item_table_heading', language)}
-          </h3>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowQuickProdModal(true)}
-              className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 hover:bg-amber-100 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {getTranslation('quick_add_commodity_btn', language) || '+ नई जिंस'}
-            </button>
-            <button
-              type="button"
-              onClick={addItemRow}
-              className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded-lg transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {getTranslation('btn_add_item_line', language)}
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
-                <th className="py-2 px-2 w-8">#</th>
-                <th className="py-2 px-2 min-w-[180px]">{getTranslation('col_item_name', language)}</th>
-                <th className="py-2 px-2 w-24">{getTranslation('col_hsn', language)}</th>
-                <th className="py-2 px-2 w-20">{getTranslation('col_bags', language)}</th>
-                <th className="py-2 px-2 w-24">{getTranslation('col_qty_unit', language)}</th>
-                <th className="py-2 px-2 w-20">{getTranslation('col_unit', language) || 'यूनिट'}</th>
-                <th className="py-2 px-2 w-24">{getTranslation('col_rate', language)}</th>
-                <th className="py-2 px-2 text-right w-28">{getTranslation('col_taxable', language)}</th>
-                <th className="py-2 px-2 text-right w-28">{getTranslation('col_tax_rate', language)}</th>
-                <th className="py-2 px-2 text-right w-32">{getTranslation('col_total_amount', language)}</th>
-                <th className="py-2 px-2 w-10"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="py-8 text-center bg-slate-50/50 dark:bg-slate-900/30">
-                    <p className="text-xs font-semibold text-slate-500 mb-2">
-                      {language === 'hi' ? 'कोई जिंस नहीं जोड़ी गई है' : language === 'en' ? 'No commodities added yet' : 'Koi item nahi joda gaya'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={addItemRow}
-                      className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-xs transition"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      {getTranslation('btn_add_item_line', language)}
-                    </button>
-                  </td>
-                </tr>
-              ) : (
-                items.map((item, idx) => (
-                  <tr key={item.id || idx} className="hover:bg-slate-50/50">
-                    <td className="py-2 px-2 text-slate-400 font-bold">{idx + 1}</td>
-                    
-                    {/* Item Name / Selector */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={item.productId || ''}
-                        onChange={(e) => handleProductSelect(idx, e.target.value)}
-                        className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5"
-                      >
-                        <option value="">{getTranslation('select_commodity_placeholder', language)}</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} {p.hindiName && language !== 'en' ? `(${p.hindiName})` : ''} - ₹{p.sellingPrice}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
-                    {/* HSN */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="text"
-                        value={item.hsnSac}
-                        onChange={(e) => updateItemRow(idx, 'hsnSac', e.target.value)}
-                        className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center"
-                      />
-                    </td>
-
-                    {/* Bags */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        placeholder="44"
-                        value={item.bags || ''}
-                        onChange={(e) => updateItemRow(idx, 'bags', e.target.value)}
-                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center font-bold"
-                      />
-                    </td>
-
-                    {/* Qty */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={item.qty}
-                        onChange={(e) => updateItemRow(idx, 'qty', e.target.value)}
-                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
-                      />
-                    </td>
-
-                    {/* Unit */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={item.unit}
-                        onChange={(e) => updateItemRow(idx, 'unit', e.target.value)}
-                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-1 py-1.5"
-                      >
-                        <option value="Kg">Kg</option>
-                        <option value="Quintal">Quintal</option>
-                        <option value="Bori">Bori</option>
-                        <option value="Metric Ton">Ton</option>
-                      </select>
-                    </td>
-
-                    {/* Rate */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={item.rate}
-                        onChange={(e) => updateItemRow(idx, 'rate', e.target.value)}
-                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
-                      />
-                    </td>
-
-                    {/* Taxable */}
-                    <td className="py-2 px-2 text-right font-bold text-slate-800 dark:text-slate-200">
-                      ₹{item.taxableValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-
-                    {/* GST */}
-                    <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
-                      ₹{(isInterState ? item.igstAmount : item.cgstAmount + item.sgstAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-
-                    {/* Total */}
-                    <td className="py-2 px-2 text-right font-black text-slate-900 dark:text-white">
-                      ₹{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-
-                    {/* Remove */}
-                    <td className="py-2 px-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => removeItemRow(idx)}
-                        title={language === 'hi' ? 'आइटम हटाएं' : language === 'en' ? 'Delete Row' : 'Row Hatayein'}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4 text-rose-500 hover:text-rose-700" />
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 font-bold uppercase text-[10px]">
+                    <th className="py-2 px-1 w-8">#</th>
+                    <th className="py-2 px-2 min-w-[170px]">{getTranslation('col_item_name', language)}</th>
+                    <th className="py-2 px-2 w-20 text-center">{getTranslation('col_hsn', language)}</th>
+                    <th className="py-2 px-2 w-16 text-center">{getTranslation('col_bags', language)}</th>
+                    <th className="py-2 px-2 w-20 text-right">{getTranslation('col_qty_unit', language)}</th>
+                    <th className="py-2 px-2 w-20">{getTranslation('col_unit', language) || 'यूनिट'}</th>
+                    <th className="py-2 px-2 w-20 text-right">{getTranslation('col_rate', language)} (₹)</th>
+                    <th className="py-2 px-2 text-right w-24">{getTranslation('col_taxable', language)} (₹)</th>
+                    <th className="py-2 px-2 text-right w-20">{getTranslation('col_tax_rate', language)} (%)</th>
+                    <th className="py-2 px-2 text-right w-24">{getTranslation('col_total_amount', language)} (₹)</th>
+                    <th className="py-2 px-1 w-10 text-center"></th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="py-8 text-center text-slate-400">
+                        {language === 'hi' ? 'कोई जिंस नहीं जुड़ी है। कृपया ऊपर दिए गए बटन से जिंस जोड़ें।' : 'No items added. Click + Add Item Row above.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    items.map((item, idx) => (
+                      <tr key={item.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
+                        <td className="py-2 px-1 font-mono text-slate-400 font-bold text-center">
+                          {idx + 1}
+                        </td>
 
-      {/* Mandi Surcharges & Final Grand Total Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left 7 Cols: Extra Mandi Charges & Notes */}
-        <div className="md:col-span-7 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-3">
-            <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-              {getTranslation('transport_charges', language)} & {getTranslation('katoti_other_charges', language)}
-            </h3>
-            <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold px-2 py-0.5 rounded-full">
-              Mandi Custom Charges
-            </span>
+                        {/* Product Name */}
+                        <td className="py-2 px-2">
+                          <select
+                            value={item.productId || ''}
+                            onChange={(e) => handleProductSelect(idx, e.target.value)}
+                            className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5"
+                          >
+                            <option value="">-- {language === 'hi' ? 'जिंस चुनें' : 'Select Commodity'} --</option>
+                            {products.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} {p.hindiName ? `(${p.hindiName})` : ''} - ₹{p.sellingPrice}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+
+                        {/* HSN */}
+                        <td className="py-2 px-2">
+                          <input
+                            type="text"
+                            value={item.hsnSac}
+                            onChange={(e) => updateItemRow(idx, 'hsnSac', e.target.value)}
+                            className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center"
+                          />
+                        </td>
+
+                        {/* Bags */}
+                        <td className="py-2 px-2">
+                          <input
+                            type="number"
+                            placeholder="44"
+                            value={item.bags || ''}
+                            onChange={(e) => updateItemRow(idx, 'bags', e.target.value)}
+                            className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center font-bold"
+                          />
+                        </td>
+
+                        {/* Qty */}
+                        <td className="py-2 px-2">
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            value={item.qty}
+                            onChange={(e) => updateItemRow(idx, 'qty', e.target.value)}
+                            className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
+                          />
+                        </td>
+
+                        {/* Unit */}
+                        <td className="py-2 px-2">
+                          <select
+                            value={item.unit}
+                            onChange={(e) => updateItemRow(idx, 'unit', e.target.value)}
+                            className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-1 py-1.5"
+                          >
+                            <option value="Kg">Kg</option>
+                            <option value="Quintal">Quintal</option>
+                            <option value="Bori">Bori</option>
+                            <option value="Metric Ton">Ton</option>
+                          </select>
+                        </td>
+
+                        {/* Rate */}
+                        <td className="py-2 px-2">
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            value={item.rate}
+                            onChange={(e) => updateItemRow(idx, 'rate', e.target.value)}
+                            className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
+                          />
+                        </td>
+
+                        {/* Taxable */}
+                        <td className="py-2 px-2 text-right font-bold text-slate-800 dark:text-slate-200">
+                          ₹{item.taxableValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        {/* GST */}
+                        <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
+                          ₹{(isInterState ? item.igstAmount : item.cgstAmount + item.sgstAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        {/* Total */}
+                        <td className="py-2 px-2 text-right font-black text-slate-900 dark:text-white">
+                          ₹{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        {/* Remove */}
+                        <td className="py-2 px-1 text-center">
+                          <button
+                            type="button"
+                            onClick={() => removeItemRow(idx)}
+                            title={language === 'hi' ? 'आइटम हटाएं' : language === 'en' ? 'Delete Row' : 'Row Hatayein'}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4 text-rose-500 hover:text-rose-700" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {/* Transport */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('label_transport_charges_box', language)} (₹)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={transportCharges}
-                onChange={(e) => setTransportCharges(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-              />
+          {/* Mandi Surcharges & Notes */}
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-3">
+              <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
+                {getTranslation('transport_charges', language)} & {getTranslation('katoti_other_charges', language)}
+              </h3>
+              <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold px-2 py-0.5 rounded-full">
+                Mandi Custom Charges
+              </span>
             </div>
 
-            {/* Hammali */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('hammali_charge', language) || 'हम्माली (Hammali)'} (₹)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={hammaliCharges}
-                onChange={(e) => setHammaliCharges(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-              />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* Transport */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {getTranslation('label_transport_charges_box', language)} (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={transportCharges}
+                  onChange={(e) => setTransportCharges(Number(e.target.value))}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              {/* Hammali */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {getTranslation('hammali_charge', language) || 'हम्माली (Hammali)'} (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={hammaliCharges}
+                  onChange={(e) => setHammaliCharges(Number(e.target.value))}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              {/* Tulai */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {getTranslation('tulai_charge', language) || 'तुलाई (Tulai)'} (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={tulaiCharges}
+                  onChange={(e) => setTulaiCharges(Number(e.target.value))}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              {/* Katoti / Bardan */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {getTranslation('label_katoti_charges_box', language)} (कट्ट) (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={katotiCharges}
+                  onChange={(e) => setKatotiCharges(Number(e.target.value))}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              {/* Other Charges Amount */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  अतिरिक्त शुल्क (Other) (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={otherCharges}
+                  onChange={(e) => setOtherCharges(Number(e.target.value))}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              {/* Other Charges Custom Label */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {getTranslation('label_other_charges_text', language)}
+                </label>
+                <input
+                  type="text"
+                  value={otherChargesLabel}
+                  onChange={(e) => setOtherChargesLabel(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                />
+              </div>
             </div>
 
-            {/* Tulai */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('tulai_charge', language) || 'तुलाई (Tulai)'} (₹)
+                {getTranslation('label_notes_remark', language)}
               </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={tulaiCharges}
-                onChange={(e) => setTulaiCharges(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-              />
-            </div>
-
-            {/* Katoti / Bardan */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('label_katoti_charges_box', language)} (₹)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={katotiCharges}
-                onChange={(e) => setKatotiCharges(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-              />
-            </div>
-
-            {/* Other Charges Amount */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                अतिरिक्त शुल्क (Other) (₹)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={otherCharges}
-                onChange={(e) => setOtherCharges(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-              />
-            </div>
-
-            {/* Other Charges Custom Label */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('label_other_charges_text', language)}
-              </label>
-              <input
-                type="text"
-                value={otherChargesLabel}
-                onChange={(e) => setOtherChargesLabel(e.target.value)}
+              <textarea
+                rows={2}
+                placeholder={language === 'hi' ? 'मंडी सौदा पर्चा संदर्भ या शर्त...' : language === 'en' ? 'Mandi agreement terms or notes...' : 'Mandi sauda parcha shart ya notes...'}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
               />
             </div>
           </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              {getTranslation('label_notes_remark', language)}
-            </label>
-            <textarea
-              rows={2}
-              placeholder={language === 'hi' ? 'मंडी सौदा पर्चा संदर्भ या शर्त...' : language === 'en' ? 'Mandi agreement terms or notes...' : 'Mandi sauda parcha shart ya notes...'}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-            />
-          </div>
         </div>
 
-        {/* Right 5 Cols: Calculation Box */}
-        <div className="md:col-span-5 bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-4">
-          <div>
-            <h3 className="text-xs font-bold uppercase text-indigo-400 tracking-wider mb-4">
-              {getTranslation('bill_summary_heading', language)}
-            </h3>
+        {/* Right Column: Sticky Live Bill Summary Sidebar */}
+        <div className="lg:col-span-4 sticky top-6 space-y-4">
+          <div className="bg-slate-900 text-white p-5 sm:p-6 rounded-3xl shadow-2xl border border-slate-700/80 space-y-4">
+            {/* Live Indicator Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+                <Receipt className="w-4 h-4 text-indigo-400" />
+                {language === 'hi' ? 'लाइव बिल गणना (Live Bill Summary)' : 'Live Bill Summary'}
+              </h3>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Live
+              </span>
+            </div>
 
-            <div className="space-y-2.5 text-xs text-slate-300">
-              <div className="flex justify-between">
-                <span>{getTranslation('taxable_subtotal', language)}:</span>
-                <span className="font-mono font-bold text-white">₹{taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            {/* Calculations Breakdown */}
+            <div className="space-y-2 text-xs text-slate-300">
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-400">Taxable Subtotal:</span>
+                <span className="font-mono font-bold text-white text-sm">
+                  ₹{taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
               </div>
+
               {transportCharges > 0 && (
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between items-center text-slate-400 py-0.5">
                   <span>+ Transport Charges:</span>
-                  <span className="font-mono">₹{transportCharges.toFixed(2)}</span>
-                </div>
-              )}
-              {hammaliCharges > 0 && (
-                <div className="flex justify-between text-slate-400">
-                  <span>+ Hammali (हम्माली):</span>
-                  <span className="font-mono">₹{hammaliCharges.toFixed(2)}</span>
-                </div>
-              )}
-              {tulaiCharges > 0 && (
-                <div className="flex justify-between text-slate-400">
-                  <span>+ Tulai (तुलाई):</span>
-                  <span className="font-mono">₹{tulaiCharges.toFixed(2)}</span>
-                </div>
-              )}
-              {katotiCharges > 0 && (
-                <div className="flex justify-between text-slate-400">
-                  <span>+ Bardan Katoti (कट्ट):</span>
-                  <span className="font-mono">₹{katotiCharges.toFixed(2)}</span>
-                </div>
-              )}
-              {otherCharges > 0 && (
-                <div className="flex justify-between text-slate-400">
-                  <span>+ {otherChargesLabel}:</span>
-                  <span className="font-mono">₹{otherCharges.toFixed(2)}</span>
+                  <span className="font-mono font-semibold text-slate-200">
+                    ₹{transportCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
                 </div>
               )}
 
-              <div className="flex justify-between font-bold text-sky-400 pt-1 border-t border-slate-700">
-                <span>{getTranslation('label_total_taxable_value', language)}</span>
-                <span className="font-mono">₹{totalTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              {katotiCharges > 0 && (
+                <div className="flex justify-between items-center text-slate-400 py-0.5">
+                  <span>+ Bardan Katoti (कट्ट):</span>
+                  <span className="font-mono font-semibold text-slate-200">
+                    ₹{katotiCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
+              {hammaliCharges > 0 && (
+                <div className="flex justify-between items-center text-slate-400 py-0.5">
+                  <span>+ Hammali (हम्माली):</span>
+                  <span className="font-mono font-semibold text-slate-200">
+                    ₹{hammaliCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
+              {tulaiCharges > 0 && (
+                <div className="flex justify-between items-center text-slate-400 py-0.5">
+                  <span>+ Tulai (तुलाई):</span>
+                  <span className="font-mono font-semibold text-slate-200">
+                    ₹{tulaiCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
+              {otherCharges > 0 && (
+                <div className="flex justify-between items-center text-slate-400 py-0.5">
+                  <span>+ {otherChargesLabel || 'Other Charges'}:</span>
+                  <span className="font-mono font-semibold text-slate-200">
+                    ₹{otherCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center font-bold text-sky-400 py-1.5 border-t border-slate-800">
+                <span>Total Taxable Value:</span>
+                <span className="font-mono text-sm">
+                  ₹{totalTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
               </div>
 
               {!isInterState ? (
                 <>
-                  <div className="flex justify-between text-slate-300">
-                    <span>+ CGST (2.5%):</span>
-                    <span className="font-mono">₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between items-center text-slate-300 py-0.5">
+                    <span className="text-slate-400">+ CGST (2.5%):</span>
+                    <span className="font-mono font-medium">
+                      ₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>+ SGST (2.5%):</span>
-                    <span className="font-mono">₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between items-center text-slate-300 py-0.5">
+                    <span className="text-slate-400">+ SGST (2.5%):</span>
+                    <span className="font-mono font-medium">
+                      ₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
                 </>
               ) : (
-                <div className="flex justify-between text-slate-300">
-                  <span>+ IGST (5%):</span>
-                  <span className="font-mono">₹{totalIgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <div className="flex justify-between items-center text-slate-300 py-0.5">
+                  <span className="text-slate-400">+ IGST (5%):</span>
+                  <span className="font-mono font-medium">
+                    ₹{totalIgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
                 </div>
               )}
 
-              <div className="flex justify-between font-bold text-slate-200">
-                <span>{getTranslation('label_total_gst_tax', language)}</span>
-                <span className="font-mono">₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <div className="flex justify-between items-center font-bold text-slate-200 py-1 border-t border-slate-800">
+                <span className="text-slate-400">Total GST Tax:</span>
+                <span className="font-mono text-amber-400">
+                  ₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
-          </div>
 
-          <div className="pt-4 border-t border-slate-700 space-y-2.5">
-            <div className="flex justify-between items-baseline">
-              <span className="text-sm font-bold text-indigo-300">{getTranslation('grand_total', language)}:</span>
-              <span className="text-2xl font-black text-white font-mono">
-                {formatIndianCurrency(finalAmount)}
-              </span>
+            {/* Grand Total Box */}
+            <div className="pt-3 border-t border-slate-800 space-y-2">
+              <div className="bg-gradient-to-br from-indigo-950/80 to-purple-950/80 p-3.5 rounded-2xl border border-indigo-700/50">
+                <div className="flex justify-between items-baseline mb-1">
+                  <span className="text-xs font-bold uppercase text-indigo-300 tracking-wider">
+                    Grand Total Amount:
+                  </span>
+                  <span className="text-2xl font-black text-white font-mono tracking-tight">
+                    {formatIndianCurrency(finalAmount)}
+                  </span>
+                </div>
+                <p className="text-[10px] text-indigo-200/70 uppercase tracking-tight leading-tight">
+                  {numberToIndianWords(finalAmount)}
+                </p>
+              </div>
+
+              {/* Instant Save & Print Button in Sticky Sidebar */}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-black text-xs py-3 rounded-xl shadow-lg transition transform active:scale-95 cursor-pointer mt-3"
+              >
+                <Printer className="w-4 h-4" />
+                <span>{language === 'hi' ? '💾 सेव करें और प्रिंट देखें' : 'Save & Print Invoice'}</span>
+              </button>
             </div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-tight leading-tight">
-              {numberToIndianWords(finalAmount)}
-            </p>
-            <button
-              type="submit"
-              className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition transform active:scale-95 cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>{language === 'hi' ? 'सेव करें और प्रिंट देखें' : 'Save & View Bill'}</span>
-            </button>
           </div>
         </div>
       </div>
