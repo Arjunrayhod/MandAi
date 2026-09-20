@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
-import { formatIndianCurrency, numberToIndianWords } from '@/lib/gstUtils';
+import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 interface InvoiceTemplateProps {
@@ -29,12 +29,13 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
   const party = invoice.party;
   const isInterState = invoice.isInterState;
   const totalInWordsText = invoice.totalInWords || numberToIndianWords(invoice.finalAmount);
+  const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
 
   return (
     <div 
       id="printable-invoice" 
       className="bg-white text-black font-sans text-[11px] leading-tight max-w-[820px] mx-auto p-4 sm:p-6 border border-gray-400 shadow-md print:shadow-none print:border-none print:p-2 print:max-w-full"
-      style={{ fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif" }}
+      style={{ fontFamily: activeFontFamily }}
     >
       {/* 1. Header Section */}
       <div className="flex justify-between items-start pb-4 pt-1 border-b-2 border-black">

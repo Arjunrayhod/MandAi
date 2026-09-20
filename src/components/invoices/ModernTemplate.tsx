@@ -2,17 +2,19 @@
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
-import { formatIndianCurrency, numberToIndianWords } from '@/lib/gstUtils';
+import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfile }> = ({ invoice, company }) => {
   const party = invoice.party;
   const isInterState = invoice.isInterState;
+  const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
 
   return (
     <div 
       id="printable-invoice" 
       className="bg-white text-slate-900 font-sans text-xs max-w-[850px] mx-auto p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none print:p-0 print:max-w-full"
+      style={{ fontFamily: activeFontFamily }}
     >
       {/* Header Banner */}
       <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-6 mb-6">

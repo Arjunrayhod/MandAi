@@ -163,3 +163,55 @@ export function generateWhatsAppReminder(params: {
 
   return { message, url };
 }
+
+export const INVOICE_FONTS: Record<string, { id: string; name: string; hindiName: string; fontFamily: string; description: string }> = {
+  inter: {
+    id: 'inter',
+    name: 'Inter (Clean & Crisp Modern)',
+    hindiName: 'इंटर (आधुनिक व सबसे साफ)',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    description: 'Cleanest modern sans-serif for GST invoices',
+  },
+  jakarta: {
+    id: 'jakarta',
+    name: 'Plus Jakarta Sans (Corporate Premium)',
+    hindiName: 'प्लस जकार्ता (प्रीमियम कॉर्पोरेट)',
+    fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    description: 'Premium balanced corporate billing typography',
+  },
+  outfit: {
+    id: 'outfit',
+    name: 'Outfit (Bold Commercial Display)',
+    hindiName: 'आउटफिट (बोल्ड व्यापारिक)',
+    fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif",
+    description: 'Bold, highly legible modern commercial font',
+  },
+  merriweather: {
+    id: 'merriweather',
+    name: 'Merriweather (Classic Vyapari Serif)',
+    hindiName: 'मेरीवेदर (पारंपरिक मंडी मुनीमी)',
+    fontFamily: "'Merriweather', 'Times New Roman', Georgia, serif",
+    description: 'Traditional mandi vyapari ledger & gaddi style',
+  },
+  roboto_slab: {
+    id: 'roboto_slab',
+    name: 'Roboto Slab (Sharp Mandi Ledger)',
+    hindiName: 'रोबोटो स्लैब (स्पष्ट खाता बही)',
+    fontFamily: "'Roboto Slab', Georgia, serif",
+    description: 'Solid, authoritative slab-serif numbers & headings',
+  },
+  mono_erp: {
+    id: 'mono_erp',
+    name: 'JetBrains Mono (Tally / ERP Numbers)',
+    hindiName: 'जेटब्रेन्स मोनो (टैली / ईआरपी स्टाइल)',
+    fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+    description: 'Perfect tabular financial digits alignment',
+  },
+};
+
+export function getInvoiceFontFamily(fontKey?: string): string {
+  if (!fontKey || !INVOICE_FONTS[fontKey]) {
+    return INVOICE_FONTS.inter.fontFamily;
+  }
+  return INVOICE_FONTS[fontKey].fontFamily;
+}

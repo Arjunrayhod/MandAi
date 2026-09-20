@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { CompanyProfile } from '@/lib/types';
 import { getTranslation, t } from '@/lib/translations';
-import { INDIAN_STATES } from '@/lib/gstUtils';
+import { INDIAN_STATES, INVOICE_FONTS } from '@/lib/gstUtils';
 import { BackupRestoreModal } from '@/components/common/BackupRestoreModal';
 import { 
   Settings, 
@@ -20,7 +20,8 @@ import {
   Percent,
   Upload,
   Image as ImageIcon,
-  Trash2
+  Trash2,
+  Type
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -703,6 +704,49 @@ export default function SettingsPage() {
                 मंडी काउंटर के लिए 3-इंच फास्ट प्रिंट पर्ची
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* 5. Invoice Typography & Font Style */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
+            <Type className="w-4 h-4" />
+            5. {language === 'hi' ? 'बिल व इनवॉइस फॉन्ट स्टाइल' : language === 'en' ? 'Invoice Font & Typography Style' : 'Invoice Font Style'}
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {Object.values(INVOICE_FONTS).map((f) => {
+              const isSelected = (formData.invoiceFont || 'inter') === f.id;
+              return (
+                <div
+                  key={f.id}
+                  onClick={() => setFormData({ ...formData, invoiceFont: f.id as any })}
+                  className={`cursor-pointer p-4 rounded-xl border-2 transition ${
+                    isSelected
+                      ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 shadow-xs'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-bold text-xs text-slate-900 dark:text-white" style={{ fontFamily: f.fontFamily }}>
+                      {language === 'hi' ? f.hindiName : f.name}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[10px] font-bold text-indigo-600">✓ Selected</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mb-2">
+                    {f.description}
+                  </p>
+                  <div 
+                    className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
+                    style={{ fontFamily: f.fontFamily }}
+                  >
+                    M/s Rathore Trading • ₹4,96,650
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

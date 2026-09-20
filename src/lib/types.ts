@@ -5,6 +5,14 @@ export type InvoiceTemplateType =
   | 'modern_mandi' 
   | 'thermal_pos';
 
+export type InvoiceFontType = 
+  | 'inter' 
+  | 'jakarta' 
+  | 'outfit' 
+  | 'merriweather' 
+  | 'roboto_slab' 
+  | 'mono_erp';
+
 export type DocumentType = 
   | 'tax_invoice' 
   | 'quotation_estimate' 
@@ -52,6 +60,7 @@ export interface CompanyProfile {
   mandiDefaults?: MandiTradeDefaults;
   businessType: BusinessType;
   invoiceTemplate: InvoiceTemplateType;
+  invoiceFont?: InvoiceFontType;
   currencySymbol: string;
   invoicePrefix: string;
   invoiceNextNumber: number;

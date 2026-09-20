@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { Invoice, CompanyProfile } from '@/lib/types';
-import { generateWhatsAppReminder } from '@/lib/gstUtils';
+import { generateWhatsAppReminder, INVOICE_FONTS } from '@/lib/gstUtils';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/translations';
-import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft, Type } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -21,7 +21,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
   currentTemplate,
   onTemplateChange,
 }) => {
-  const { recordPayment, language } = useAppStore();
+  const { recordPayment, updateCompany, language } = useAppStore();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [payAmount, setPayAmount] = useState(invoice.balanceAmount);
   const [payMode, setPayMode] = useState<'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque'>('Cash');
@@ -71,7 +71,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
     <>
       {/* Top Action Bar (hidden on print) */}
       <div className="print:hidden bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-3">
           <Link
             href="/billing"
             className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 bg-slate-100 dark:bg-slate-700 px-3 py-2 rounded-lg transition-colors"
@@ -92,6 +92,25 @@ export const InvoicePrintActions: React.FC<Props> = ({
               <option value="classic_rathore">Classic Mandi GST (Rathore Trading)</option>
               <option value="modern_mandi">Modern Vyapar Indigo</option>
               <option value="thermal_pos">Thermal 80mm POS Slip</option>
+            </select>
+          </div>
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+          {/* Font Selector */}
+          <div className="flex items-center gap-2">
+            <Type className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="text-xs font-medium text-slate-500">{language === 'hi' ? 'फॉन्ट स्टाइल' : 'Font Style'}</span>
+            <select
+              value={company.invoiceFont || 'inter'}
+              onChange={(e) => updateCompany({ ...company, invoiceFont: e.target.value as any })}
+              className="text-xs font-semibold bg-slate-100 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 focus:outline-indigo-500"
+            >
+              {Object.values(INVOICE_FONTS).map((f) => (
+                <option key={f.id} value={f.id}>
+                  {language === 'hi' ? f.hindiName : f.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
