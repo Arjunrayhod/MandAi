@@ -17,7 +17,10 @@ import {
   Database,
   Wheat,
   Scale,
-  Percent
+  Percent,
+  Upload,
+  Image as ImageIcon,
+  Trash2
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -26,6 +29,55 @@ export default function SettingsPage() {
   const [showBackupModal, setShowBackupModal] = useState(false);
 
   const [formData, setFormData] = useState<CompanyProfile>(company);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'hi' ? 'कृपया 5MB से छोटी इमेज फ़ाइल चुनें' : 'Please select an image file under 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const maxDim = 400;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/png', 0.9);
+          setFormData((prev) => ({ ...prev, logoUrl: dataUrl }));
+        } else {
+          setFormData((prev) => ({ ...prev, logoUrl: event.target?.result as string }));
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData((prev) => ({ ...prev, logoUrl: undefined }));
+  };
 
   const handleStateChange = (stateName: string) => {
     const found = INDIAN_STATES.find((s) => s.name === stateName);
@@ -214,6 +266,66 @@ export default function SettingsPage() {
             <Building className="w-4 h-4" />
             2. {t('tab_firm_profile', language)}
           </h3>
+
+          {/* Logo Upload Box */}
+          <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 flex flex-col sm:flex-row items-center gap-4">
+            <div className="shrink-0">
+              {formData.logoUrl ? (
+                <div className="relative group">
+                  <img
+                    src={formData.logoUrl}
+                    alt="Company Logo"
+                    className="w-20 h-20 object-contain rounded-xl bg-white p-1 border border-slate-300 dark:border-slate-600 shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    title={t('remove_logo', language)}
+                    className="absolute -top-2 -right-2 bg-rose-600 text-white p-1 rounded-full shadow-md hover:bg-rose-700 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex flex-col items-center justify-center font-bold text-xs gap-1">
+                  <ImageIcon className="w-7 h-7" />
+                  <span className="text-[10px] font-semibold">{language === 'hi' ? 'लोगो नहीं है' : 'No Logo'}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-1.5 text-center sm:text-left">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-center sm:justify-start gap-1.5">
+                <ImageIcon className="w-4 h-4 text-indigo-600" />
+                {t('company_logo', language)}
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {t('logo_help_text', language)}
+              </p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                <label className="cursor-pointer inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition transform active:scale-95">
+                  <Upload className="w-3.5 h-3.5" />
+                  {formData.logoUrl ? (language === 'hi' ? 'लोगो बदलें' : language === 'en' ? 'Change Logo' : 'Logo Badlein') : t('upload_logo', language)}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                </label>
+                {formData.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-100 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {t('remove_logo', language)}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

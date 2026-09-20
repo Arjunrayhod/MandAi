@@ -37,9 +37,17 @@ export const Sidebar: React.FC = () => {
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 print:hidden select-none">
       {/* Brand Logo & Name */}
       <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
-          <Wheat className="w-6 h-6" />
-        </div>
+        {company.logoUrl ? (
+          <img
+            src={company.logoUrl}
+            alt={company.name}
+            className="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-700 shadow-md shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shrink-0">
+            <Wheat className="w-6 h-6" />
+          </div>
+        )}
         <div className="overflow-hidden">
           <h2 className="text-sm font-bold text-white truncate tracking-tight">
             {company.name || 'MandAi SaaS'}
@@ -86,12 +94,25 @@ export const Sidebar: React.FC = () => {
 
       {/* Bottom Profile Info */}
       <div className="p-4 border-t border-slate-800 text-[11px] bg-slate-950/40">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-bold text-white truncate">{company.ownerName || 'Kundan Rathore'}</p>
-            <p className="text-slate-500 text-[10px]">{company.city}, {company.state}</p>
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {company.logoUrl ? (
+              <img
+                src={company.logoUrl}
+                alt={company.ownerName}
+                className="w-8 h-8 rounded-full object-cover bg-white border border-slate-700 shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                {(company.ownerName || company.name || 'M')[0].toUpperCase()}
+              </div>
+            )}
+            <div className="overflow-hidden">
+              <p className="font-bold text-white truncate">{company.ownerName || 'Kundan Rathore'}</p>
+              <p className="text-slate-500 text-[10px] truncate">{company.city}, {company.state}</p>
+            </div>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 shrink-0"></span>
         </div>
       </div>
     </aside>

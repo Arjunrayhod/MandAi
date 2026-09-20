@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
@@ -12,6 +12,13 @@ export const ThermalTemplate: React.FC<{ invoice: Invoice; company: CompanyProfi
       className="bg-white text-black font-mono text-[11px] max-w-[320px] mx-auto p-4 border border-dashed border-gray-400 shadow-sm print:shadow-none print:border-none print:p-0 print:max-w-full"
     >
       <div className="text-center pb-2 border-b border-dashed border-black">
+        {company.logoUrl && (
+          <img
+            src={company.logoUrl}
+            alt={company.name}
+            className="w-12 h-12 object-contain mx-auto mb-1"
+          />
+        )}
         <h2 className="font-bold text-sm uppercase">{company.name}</h2>
         <p className="text-[10px]">{company.city}, {company.state}</p>
         <p className="text-[10px]">GSTIN: {company.gstin}</p>

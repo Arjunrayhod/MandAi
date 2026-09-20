@@ -40,17 +40,25 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
       <div className="flex justify-between items-start pb-4 pt-1 border-b-2 border-black">
         {/* Left: Logo & Company Address */}
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#1e293b] text-white flex items-center justify-center font-black text-lg border-2 border-gray-400 shrink-0 shadow-xs">
-            {company.name
-              ? company.name
-                  .split(' ')
-                  .filter(Boolean)
-                  .map((w) => w[0])
-                  .slice(0, 3)
-                  .join('')
-                  .toUpperCase()
-              : 'RTC'}
-          </div>
+          {company.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={company.name}
+              className="w-16 h-16 object-contain rounded-xl border border-gray-300 p-1 shrink-0 bg-white"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-[#1e293b] text-white flex items-center justify-center font-black text-lg border-2 border-gray-400 shrink-0 shadow-xs">
+              {company.name
+                ? company.name
+                    .split(' ')
+                    .filter(Boolean)
+                    .map((w) => w[0])
+                    .slice(0, 3)
+                    .join('')
+                    .toUpperCase()
+                : 'RTC'}
+            </div>
+          )}
           <div className="space-y-1">
             <h1 className="text-2xl font-black text-black tracking-tight leading-tight">
               {company.name || 'Rathore Trading Company'}

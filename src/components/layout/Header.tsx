@@ -30,7 +30,15 @@ export const Header: React.FC = () => {
       {/* Left Search / Info */}
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
-          <Store className="w-4 h-4 text-indigo-600 shrink-0" />
+          {company.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={company.name}
+              className="w-5 h-5 rounded-md object-contain bg-white p-0.5 border border-slate-200 dark:border-slate-700 shrink-0"
+            />
+          ) : (
+            <Store className="w-4 h-4 text-indigo-600 shrink-0" />
+          )}
           <span className="font-bold truncate max-w-[150px] sm:max-w-[220px]">{company.name}</span>
           <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono px-1.5 py-0.5 rounded-md hidden sm:inline-block">
             GST: {company.gstin}

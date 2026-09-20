@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
@@ -18,9 +18,17 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
       <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-6 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-md">
-              🌾
-            </div>
+            {company.logoUrl ? (
+              <img
+                src={company.logoUrl}
+                alt={company.name}
+                className="w-14 h-14 object-contain rounded-xl border border-slate-200 p-1 bg-white shadow-xs shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-md shrink-0">
+                🌾
+              </div>
+            )}
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">{company.name}</h1>
               <p className="text-indigo-600 font-medium text-xs">Krishi Upaj Mandi Vyapari & Commission Agent</p>

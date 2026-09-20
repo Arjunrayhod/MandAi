@@ -1447,6 +1447,26 @@ export const TRANSLATIONS = {
     en: 'Save Settings',
     hinglish: 'Settings Save Karein',
   },
+  company_logo: {
+    hi: 'कंपनी / फर्म लोगो',
+    en: 'Company / Firm Logo',
+    hinglish: 'Company / Firm Logo',
+  },
+  upload_logo: {
+    hi: 'लोगो अपलोड करें',
+    en: 'Upload Logo',
+    hinglish: 'Logo Upload Karein',
+  },
+  remove_logo: {
+    hi: 'लोगो हटाएं',
+    en: 'Remove Logo',
+    hinglish: 'Logo Hatayein',
+  },
+  logo_help_text: {
+    hi: 'यह लोगो आपके सभी बिलों (Invoices), पर्चों व प्रोफाइल आइकन पर दिखेगा (PNG, JPG, WebP)',
+    en: 'This logo will appear on all your invoices, bills and profile avatar (PNG, JPG, WebP)',
+    hinglish: 'Ye logo aapke sabhi bills, invoice aur profile icon par show hoga (PNG, JPG)',
+  },
 };
 
 export type TranslationKey = keyof typeof TRANSLATIONS;
