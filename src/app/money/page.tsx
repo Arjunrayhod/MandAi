@@ -267,12 +267,13 @@ export default function MoneyPage() {
       </div>
 
       {/* Add Tx Modal */}
+      {/* Add Tx Modal */}
       {showTxModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                रोकड़ एंट्री दर्ज करें (Cash / Expense Entry)
+                {t('modal_cash_entry_title', language)}
               </h3>
               <button onClick={() => setShowTxModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
@@ -282,7 +283,7 @@ export default function MoneyPage() {
             <form onSubmit={handleTxSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  एंट्री का प्रकार
+                  {t('entry_type', language)}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -294,7 +295,7 @@ export default function MoneyPage() {
                         : 'bg-slate-50 text-slate-600'
                     }`}
                   >
-                    खर्च (Expense Out)
+                    {t('expense_out', language)}
                   </button>
                   <button
                     type="button"
@@ -305,14 +306,14 @@ export default function MoneyPage() {
                         : 'bg-slate-50 text-slate-600'
                     }`}
                   >
-                    आय / आमद (Cash In)
+                    {t('income_in', language)}
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  राशि (Amount in ₹) *
+                  {t('amount_label', language)}
                 </label>
                 <input
                   type="number"
@@ -327,30 +328,30 @@ export default function MoneyPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  कैटेगरी चुनें
+                  {t('select_category', language)}
                 </label>
                 <select
                   value={txCategory}
                   onChange={(e) => setTxCategory(e.target.value)}
                   className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
                 >
-                  <option value="मंडी हम्माली व तुलाई">मंडी हम्माली व तुलाई (Labour/Hammali)</option>
-                  <option value="भाड़ा व परिवहन (Freight)">भाड़ा व परिवहन (Freight / Gadi Bhada)</option>
-                  <option value="बारदान व कट्टा खर्च">बारदान व कट्टा खर्च (Bags / Packaging)</option>
-                  <option value="चाय-पानी व नाश्ता">चाय-पानी व नाश्ता (Tea/Snacks)</option>
-                  <option value="दुकान किराया व बिजली">दुकान किराया व बिजली (Shop Rent & Power)</option>
-                  <option value="मंडी टैक्स व सेस">मंडी टैक्स व सेस (Mandi Cess)</option>
-                  <option value="विविध खर्च">विविध खर्च (Miscellaneous)</option>
+                  <option value="मंडी हम्माली व तुलाई">{language === 'hi' ? 'मंडी हम्माली व तुलाई' : language === 'en' ? 'Labour / Hammali' : 'Hammali & Tulai'}</option>
+                  <option value="भाड़ा व परिवहन (Freight)">{language === 'hi' ? 'भाड़ा व परिवहन (गाड़ी भाड़ा)' : language === 'en' ? 'Freight & Transportation' : 'Gadi Bhada & Freight'}</option>
+                  <option value="बारदान व कट्टा खर्च">{language === 'hi' ? 'बारदान व कट्टा खर्च' : language === 'en' ? 'Bags & Packaging' : 'Bardan & Packaging'}</option>
+                  <option value="चाय-पानी व नाश्ता">{language === 'hi' ? 'चाय-पानी व नाश्ता' : language === 'en' ? 'Tea & Refreshments' : 'Chai-Pani & Snacks'}</option>
+                  <option value="दुकान किराया व बिजली">{language === 'hi' ? 'दुकान किराया व बिजली' : language === 'en' ? 'Shop Rent & Electricity' : 'Shop Rent & Electricity'}</option>
+                  <option value="मंडी टैक्स व सेस">{language === 'hi' ? 'मंडी टैक्स व सेस' : language === 'en' ? 'Mandi Tax & Cess' : 'Mandi Tax & Cess'}</option>
+                  <option value="विविध खर्च">{language === 'hi' ? 'विविध खर्च' : language === 'en' ? 'Miscellaneous Expenses' : 'Vividh Kharch'}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  विवरण / रिमार्क
+                  {t('description_remark', language)}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 50 बोरी लोडिंग मजदूरी"
+                  placeholder={language === 'hi' ? 'उदा. 50 बोरी लोडिंग मजदूरी' : language === 'en' ? 'e.g. 50 Bags loading labour' : 'e.g. 50 Bori loading hammali'}
                   value={txDesc}
                   onChange={(e) => setTxDesc(e.target.value)}
                   className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
@@ -361,15 +362,15 @@ export default function MoneyPage() {
                 <button
                   type="button"
                   onClick={() => setShowTxModal(false)}
-                  className="w-1/2 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700"
+                  className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
-                  रद्द करें
+                  {t('cancel', language)}
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm"
+                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition"
                 >
-                  सुरक्षित करें
+                  {t('save', language)}
                 </button>
               </div>
             </form>
@@ -383,7 +384,7 @@ export default function MoneyPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                नया बैंक खाता जोड़ें (Add Bank Account)
+                {t('add_bank_account_title', language)}
               </h3>
               <button onClick={() => setShowBankModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
@@ -393,7 +394,7 @@ export default function MoneyPage() {
             <form onSubmit={handleBankSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  बैंक का नाम (e.g. HDFC Bank, SBI) *
+                  {t('bank_name_label', language)}
                 </label>
                 <input
                   type="text"
@@ -408,7 +409,7 @@ export default function MoneyPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    खाता धारक का नाम *
+                    {t('account_holder_name', language)}
                   </label>
                   <input
                     type="text"
@@ -422,7 +423,7 @@ export default function MoneyPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    खाता नंबर (A/C No) *
+                    {t('account_number_label', language)}
                   </label>
                   <input
                     type="text"
@@ -438,7 +439,7 @@ export default function MoneyPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    IFSC कोड *
+                    {t('ifsc_code_label', language)}
                   </label>
                   <input
                     type="text"
@@ -467,7 +468,7 @@ export default function MoneyPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  शाखा (Branch Address)
+                  {t('branch_address_label', language)}
                 </label>
                 <input
                   type="text"
@@ -482,15 +483,15 @@ export default function MoneyPage() {
                 <button
                   type="button"
                   onClick={() => setShowBankModal(false)}
-                  className="w-1/2 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700"
+                  className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
-                  रद्द करें
+                  {t('cancel', language)}
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm"
+                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition"
                 >
-                  खाता जोड़ें
+                  {t('btn_add_account', language)}
                 </button>
               </div>
             </form>

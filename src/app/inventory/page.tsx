@@ -288,7 +288,7 @@ export default function InventoryPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                नई जिंस जोड़ें (Add New Commodity / Product)
+                {t('modal_add_commodity_title', language)}
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
@@ -299,7 +299,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    जिंस का नाम (Name in English) *
+                    {t('modal_comm_name_en', language)}
                   </label>
                   <input
                     type="text"
@@ -313,7 +313,7 @@ export default function InventoryPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    हिंदी नाम (Hindi Name)
+                    {t('modal_comm_name_hi', language)}
                   </label>
                   <input
                     type="text"
@@ -328,7 +328,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    HSN / SAC कोड *
+                    {t('modal_hsn_code', language)}
                   </label>
                   <input
                     type="text"
@@ -341,23 +341,23 @@ export default function InventoryPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    यूनिट (Unit)
+                    {t('unit', language)}
                   </label>
                   <select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value as any })}
                     className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-2"
                   >
-                    <option value="Kg">Kg (किलो)</option>
-                    <option value="Quintal">Quintal (क्विंटल)</option>
-                    <option value="Bags / Bori">Bags / Bori (बोरी)</option>
-                    <option value="Metric Ton">Metric Ton (टन)</option>
+                    <option value="Kg">{language === 'hi' ? 'Kg (किलो)' : language === 'en' ? 'Kg' : 'Kg (Kilo)'}</option>
+                    <option value="Quintal">{language === 'hi' ? 'Quintal (क्विंटल)' : language === 'en' ? 'Quintal' : 'Quintal'}</option>
+                    <option value="Bags / Bori">{language === 'hi' ? 'Bags (बोरी)' : language === 'en' ? 'Bags' : 'Bori (Bags)'}</option>
+                    <option value="Metric Ton">{language === 'hi' ? 'Metric Ton (टन)' : language === 'en' ? 'Metric Ton' : 'Metric Ton'}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    GST दर (%)
+                    {t('gst_rate', language)}
                   </label>
                   <select
                     value={formData.gstRate}
@@ -376,7 +376,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    खरीद भाव (Purchase Rate ₹)
+                    {t('modal_purchase_rate', language)}
                   </label>
                   <input
                     type="number"
@@ -389,7 +389,7 @@ export default function InventoryPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    बिक्री भाव (Selling Rate ₹) *
+                    {t('modal_selling_rate', language)}
                   </label>
                   <input
                     type="number"
@@ -405,7 +405,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    प्रारंभिक स्टॉक
+                    {t('modal_initial_stock', language)}
                   </label>
                   <input
                     type="number"
@@ -417,7 +417,7 @@ export default function InventoryPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    बोरी संख्या (Bags)
+                    {t('modal_bag_count', language)}
                   </label>
                   <input
                     type="number"
@@ -429,7 +429,7 @@ export default function InventoryPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    न्यूनतम अलर्ट लिमिट
+                    {t('modal_min_alert', language)}
                   </label>
                   <input
                     type="number"
@@ -444,15 +444,15 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300"
+                  className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
-                  रद्द करें
+                  {t('cancel', language)}
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm"
+                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition"
                 >
-                  जिंस सुरक्षित करें
+                  {t('modal_save_commodity', language)}
                 </button>
               </div>
             </form>
@@ -465,22 +465,22 @@ export default function InventoryPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-              स्टॉक आवक / जावक (Stock Inward/Outward)
+              {t('modal_stock_in_out_title', language)}
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              {selectedProd.name} • वर्तमान स्टॉक: {selectedProd.currentStock} {selectedProd.unit} ({selectedProd.bagCount || 0} बोरी)
+              {selectedProd.name} • {t('modal_current_stock_label', language)} {selectedProd.currentStock} {selectedProd.unit} ({selectedProd.bagCount || 0} {language === 'hi' ? 'बोरी' : language === 'en' ? 'Bags' : 'Bori'})
             </p>
 
             <form onSubmit={handleStockSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  वजन में बदलाव (+ आवक के लिए, - जावक/घटत के लिए)
+                  {t('modal_weight_change_label', language)}
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   required
-                  placeholder="+500 या -200"
+                  placeholder={language === 'hi' ? '+500 या -200' : language === 'en' ? '+500 or -200' : '+500 ya -200'}
                   value={adjustQty}
                   onChange={(e) => setAdjustQty(Number(e.target.value))}
                   className="w-full text-base font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
@@ -489,11 +489,11 @@ export default function InventoryPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  बोरी में बदलाव (+/- बोरी)
+                  {t('modal_bags_change_label', language)}
                 </label>
                 <input
                   type="number"
-                  placeholder="+10 या -4"
+                  placeholder={language === 'hi' ? '+10 या -4' : language === 'en' ? '+10 or -4' : '+10 ya -4'}
                   value={adjustBags}
                   onChange={(e) => setAdjustBags(Number(e.target.value))}
                   className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
@@ -504,15 +504,15 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowStockAdjustModal(false)}
-                  className="w-1/2 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700"
+                  className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
-                  रद्द करें
+                  {t('cancel', language)}
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm"
+                  className="w-1/2 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition"
                 >
-                  स्टॉक अपडेट करें
+                  {t('modal_update_stock_btn', language)}
                 </button>
               </div>
             </form>

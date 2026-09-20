@@ -134,6 +134,26 @@ export const TRANSLATIONS = {
     en: 'Date',
     hinglish: 'Tareekh',
   },
+  save_changes: {
+    hi: 'बदलाव सहेजें',
+    en: 'Save Changes',
+    hinglish: 'Badlaav Save Karein',
+  },
+  unit: {
+    hi: 'यूनिट',
+    en: 'Unit',
+    hinglish: 'Unit',
+  },
+  gst_rate: {
+    hi: 'GST दर (%)',
+    en: 'GST Rate (%)',
+    hinglish: 'GST Dar (%)',
+  },
+  category: {
+    hi: 'श्रेणी / कैटेगरी',
+    en: 'Category',
+    hinglish: 'Category',
+  },
   notes: {
     hi: 'टिप्पणी / रिमार्क',
     en: 'Notes / Remarks',
@@ -1004,6 +1024,56 @@ export const TRANSLATIONS = {
     en: '⚡ Convert to GST Bill',
     hinglish: '⚡ GST Bill Banayein',
   },
+  create_sauda_title: {
+    hi: 'नया मंडी सौदा पर्चा बनाएं (Create Sauda Parcha)',
+    en: 'Create Mandi Sauda Slip',
+    hinglish: 'Naya Sauda Parcha Banayein',
+  },
+  party_farmer_name: {
+    hi: 'पार्टी / किसान का नाम *',
+    en: 'Party / Farmer Name *',
+    hinglish: 'Party / Kisaan Ka Naam *',
+  },
+  katoti_amount_label: {
+    hi: 'कटौती / कट्ट (₹)',
+    en: 'Deductions / Katoti (₹)',
+    hinglish: 'Katoti / Katt (₹)',
+  },
+  hammali_amount_label: {
+    hi: 'हम्माली / तुलाई (₹)',
+    en: 'Labour & Hammali (₹)',
+    hinglish: 'Hammali / Tulai (₹)',
+  },
+  save_sauda_btn: {
+    hi: 'पर्चा सुरक्षित करें',
+    en: 'Save Sauda Slip',
+    hinglish: 'Parcha Save Karein',
+  },
+  sauda_slip_preview_title: {
+    hi: 'मंडी कच्चा सौदा पर्चा (TOL PARCHI)',
+    en: 'MANDI SAUDA / WEIGHING SLIP',
+    hinglish: 'MANDI SAUDA / TOL PARCHI',
+  },
+  gross_amount_label: {
+    hi: 'सकल मूल्य',
+    en: 'Gross Amount',
+    hinglish: 'Gross Amount',
+  },
+  auth_sign_label: {
+    hi: 'हस्ताक्षर तौलदार / आढ़ती',
+    en: 'Authorised Signature',
+    hinglish: 'Authorised Signature',
+  },
+  btn_close: {
+    hi: 'बंद करें',
+    en: 'Close',
+    hinglish: 'Band Karein',
+  },
+  btn_print_slip: {
+    hi: 'प्रिंट निकालें',
+    en: 'Print Slip',
+    hinglish: 'Print Nikalein',
+  },
 
   // Inventory / Stock
   inventory_title: {
@@ -1071,6 +1141,81 @@ export const TRANSLATIONS = {
     en: 'Warehouse Location',
     hinglish: 'Godown Sthan',
   },
+  modal_stock_in_out_title: {
+    hi: 'स्टॉक आवक / जावक (Stock Inward/Outward)',
+    en: 'Stock Inward / Outward Entry',
+    hinglish: 'Stock Aavak / Jaavak Entry',
+  },
+  modal_current_stock_label: {
+    hi: 'वर्तमान स्टॉक:',
+    en: 'Current Stock:',
+    hinglish: 'Current Stock:',
+  },
+  modal_weight_change_label: {
+    hi: 'वजन में बदलाव (+ आवक के लिए, - जावक/घटत के लिए)',
+    en: 'Weight Change (+ for Inward, - for Outward)',
+    hinglish: 'Weight Change (+ Aavak, - Jaavak/Loss)',
+  },
+  modal_bags_change_label: {
+    hi: 'बोरी में बदलाव (+/- बोरी)',
+    en: 'Bags Change (+/- Bags Count)',
+    hinglish: 'Bori Change (+/- Bori)',
+  },
+  modal_update_stock_btn: {
+    hi: 'स्टॉक अपडेट करें',
+    en: 'Update Stock',
+    hinglish: 'Stock Update Karein',
+  },
+  modal_add_commodity_title: {
+    hi: 'नई जिंस जोड़ें (Add New Commodity)',
+    en: 'Add New Commodity / Product',
+    hinglish: 'Nayi Jins Jodein (Add Commodity)',
+  },
+  modal_comm_name_en: {
+    hi: 'जिंस का नाम (English) *',
+    en: 'Commodity Name *',
+    hinglish: 'Commodity Name (English) *',
+  },
+  modal_comm_name_hi: {
+    hi: 'हिंदी / स्थानीय नाम',
+    en: 'Hindi / Regional Name',
+    hinglish: 'Hindi / Local Naam',
+  },
+  modal_hsn_code: {
+    hi: 'HSN / SAC कोड *',
+    en: 'HSN / SAC Code *',
+    hinglish: 'HSN / SAC Code *',
+  },
+  modal_purchase_rate: {
+    hi: 'खरीद भाव (Purchase Rate ₹)',
+    en: 'Purchase Rate (₹)',
+    hinglish: 'Kharid Bhaav (Purchase Rate ₹)',
+  },
+  modal_selling_rate: {
+    hi: 'बिक्री भाव (Selling Rate ₹) *',
+    en: 'Selling Rate (₹) *',
+    hinglish: 'Bikri Bhaav (Selling Rate ₹) *',
+  },
+  modal_initial_stock: {
+    hi: 'प्रारंभिक स्टॉक',
+    en: 'Opening Stock Qty',
+    hinglish: 'Opening Stock (Quantity)',
+  },
+  modal_bag_count: {
+    hi: 'बोरी संख्या (Bags)',
+    en: 'Opening Bags Count',
+    hinglish: 'Opening Bori Count',
+  },
+  modal_min_alert: {
+    hi: 'न्यूनतम अलर्ट लिमिट',
+    en: 'Low Stock Alert Limit',
+    hinglish: 'Min Stock Alert Limit',
+  },
+  modal_save_commodity: {
+    hi: 'जिंस सुरक्षित करें',
+    en: 'Save Commodity',
+    hinglish: 'Save Commodity',
+  },
 
   // Money & Cashbook
   money_title: {
@@ -1127,6 +1272,76 @@ export const TRANSLATIONS = {
     hi: 'राशि (₹)',
     en: 'Amount (₹)',
     hinglish: 'Rashi (₹)',
+  },
+  modal_cash_entry_title: {
+    hi: 'रोकड़ एंट्री दर्ज करें (Cash / Expense Entry)',
+    en: 'Record Cash / Expense Entry',
+    hinglish: 'Rokad / Kharch Entry Karein',
+  },
+  entry_type: {
+    hi: 'एंट्री का प्रकार',
+    en: 'Entry Type',
+    hinglish: 'Entry Ka Type',
+  },
+  expense_out: {
+    hi: 'खर्च (Expense Out)',
+    en: 'Expense (Cash Out)',
+    hinglish: 'Kharch (Cash Out)',
+  },
+  income_in: {
+    hi: 'आय / आमद (Cash In)',
+    en: 'Income (Cash In)',
+    hinglish: 'Aamad (Cash In)',
+  },
+  amount_label: {
+    hi: 'राशि (₹) *',
+    en: 'Amount (₹) *',
+    hinglish: 'Rashi (₹) *',
+  },
+  select_category: {
+    hi: 'कैटेगरी चुनें',
+    en: 'Select Category',
+    hinglish: 'Category Chunein',
+  },
+  description_remark: {
+    hi: 'विवरण / रिमार्क',
+    en: 'Description / Remarks',
+    hinglish: 'Vivaran / Remark',
+  },
+  add_bank_account_title: {
+    hi: 'नया बैंक खाता जोड़ें (Add Bank Account)',
+    en: 'Add New Bank Account',
+    hinglish: 'Naya Bank Khata Jodein',
+  },
+  bank_name_label: {
+    hi: 'बैंक का नाम *',
+    en: 'Bank Name *',
+    hinglish: 'Bank Ka Naam *',
+  },
+  account_holder_name: {
+    hi: 'खाता धारक का नाम *',
+    en: 'Account Holder Name *',
+    hinglish: 'Account Holder Ka Naam *',
+  },
+  account_number_label: {
+    hi: 'खाता नंबर (A/C No) *',
+    en: 'Account Number (A/C No) *',
+    hinglish: 'Account Number (A/C No) *',
+  },
+  ifsc_code_label: {
+    hi: 'IFSC कोड *',
+    en: 'IFSC Code *',
+    hinglish: 'IFSC Code *',
+  },
+  branch_address_label: {
+    hi: 'शाखा (Branch Address)',
+    en: 'Branch Address',
+    hinglish: 'Branch Address',
+  },
+  btn_add_account: {
+    hi: 'खाता जोड़ें',
+    en: 'Add Account',
+    hinglish: 'Account Jodein',
   },
 
   // Reports
