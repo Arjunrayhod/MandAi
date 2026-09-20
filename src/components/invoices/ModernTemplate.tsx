@@ -198,6 +198,18 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
               <span>Grand Total</span>
               <span>{formatIndianCurrency(invoice.finalAmount)}</span>
             </div>
+            {invoice.paidAmount > 0 && (
+              <div className="flex justify-between text-xs font-bold text-emerald-700 pt-1.5 border-t border-slate-200">
+                <span>Less : Paid Amount (जमा राशि)</span>
+                <span>-{formatIndianCurrency(invoice.paidAmount)}</span>
+              </div>
+            )}
+            <div className={`flex justify-between text-sm font-black pt-1.5 border-t-2 ${
+              invoice.balanceAmount <= 0 ? 'text-emerald-700' : 'text-rose-600'
+            }`}>
+              <span>Balance Due (शेष बाकी लेना)</span>
+              <span>{invoice.balanceAmount > 0 ? formatIndianCurrency(invoice.balanceAmount) : '₹0.00 (पूरा चुकता)'}</span>
+            </div>
           </div>
 
           <div className="text-center pt-6">

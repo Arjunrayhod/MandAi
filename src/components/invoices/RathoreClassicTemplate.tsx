@@ -432,9 +432,21 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
               <span>{invoice.totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
 
-            <div className="flex justify-between py-2 px-3 border-b-2 border-black bg-[#e0f2fe] text-black font-black text-[13px]">
+            <div className="flex justify-between py-2 px-3 border-b border-black bg-[#e0f2fe] text-black font-black text-[13px]">
               <span>Total Amount After Tax</span>
               <span>{formatIndianCurrency(invoice.finalAmount)}</span>
+            </div>
+            {invoice.paidAmount > 0 && (
+              <div className="flex justify-between py-1.5 px-3 border-b border-gray-300 text-emerald-800 font-bold bg-emerald-50/70">
+                <span>Less : Paid Amount (जमा राशि)</span>
+                <span>-{formatIndianCurrency(invoice.paidAmount)}</span>
+              </div>
+            )}
+            <div className={`flex justify-between py-1.5 px-3 border-b-2 border-black font-black text-[12px] ${
+              invoice.balanceAmount <= 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-50 text-rose-700'
+            }`}>
+              <span>Balance Due (शेष बाकी लेना)</span>
+              <span>{invoice.balanceAmount > 0 ? formatIndianCurrency(invoice.balanceAmount) : '₹0.00 (पूरा चुकता)'}</span>
             </div>
             <div className="text-right px-3 py-1 text-[9.5px] text-gray-600 italic">
               (E & O.E.)

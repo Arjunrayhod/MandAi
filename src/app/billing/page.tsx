@@ -254,10 +254,9 @@ export default function InvoicesListPage() {
                 <th className="py-3 px-4">{t('col_bill_no', language)}</th>
                 <th className="py-3 px-4">{t('col_party', language)}</th>
                 <th className="py-3 px-4">{t('invoice_date', language)}</th>
-                <th className="py-3 px-4">{t('due_date', language)}</th>
-                <th className="py-3 px-4 text-right">{t('taxable_subtotal', language)}</th>
-                <th className="py-3 px-4 text-right">{t('col_total_amount', language)}</th>
-                <th className="py-3 px-4 text-right">{t('balance_to_receive', language)}</th>
+                <th className="py-3 px-4 text-right">{language === 'hi' ? 'कुल बिल राशि' : 'Total Bill'}</th>
+                <th className="py-3 px-4 text-right text-emerald-700 dark:text-emerald-400">{language === 'hi' ? 'जमा मिला (Paid)' : 'Paid Amount'}</th>
+                <th className="py-3 px-4 text-right text-rose-700 dark:text-rose-400">{language === 'hi' ? 'बाकी लेना (Balance)' : 'Balance Due'}</th>
                 <th className="py-3 px-4 text-center">{t('status', language)}</th>
                 <th className="py-3 px-4 text-right">{language === 'hi' ? 'भुगतान दर्ज / एक्शन' : 'Payment & Actions'}</th>
               </tr>
@@ -265,7 +264,7 @@ export default function InvoicesListPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
                     {language === 'hi' ? 'कोई बिल नहीं मिला।' : language === 'en' ? 'No invoices found.' : 'Koi bill nahi mila.'}
                   </td>
@@ -273,7 +272,8 @@ export default function InvoicesListPage() {
               ) : (
                 filteredInvoices.map((inv) => {
                   const isPaid = inv.status === 'paid' || inv.balanceAmount <= 0;
-                  const isPartial = inv.status === 'partial' && inv.balanceAmount > 0;
+                  const isPartial = (inv.paidAmount || 0) > 0 && inv.balanceAmount > 0;
+                  const paidPercent = inv.finalAmount > 0 ? Math.round(((inv.paidAmount || 0) / inv.finalAmount) * 100) : 0;
 
                   return (
                     <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition">
@@ -289,22 +289,36 @@ export default function InvoicesListPage() {
                         </p>
                       </td>
                       <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                        {inv.invoiceDate}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                        {inv.dueDate}
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
-                        ₹{inv.taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <p className="font-medium">{inv.invoiceDate}</p>
+                        <p className="text-[10px] text-slate-400">Due: {inv.dueDate}</p>
                       </td>
                       <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">
                         {formatIndianCurrency(inv.finalAmount)}
                       </td>
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        {(inv.paidAmount || 0) > 0 ? (
+                          <div>
+                            <span className="font-bold text-emerald-600">
+                              {formatIndianCurrency(inv.paidAmount || 0)}
+                            </span>
+                            <span className="block text-[9.5px] text-emerald-600 font-semibold">
+                              ({paidPercent}% जमा)
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 font-medium">₹0.00</span>
+                        )}
+                      </td>
                       <td className="py-3.5 px-4 text-right font-bold whitespace-nowrap">
                         {inv.balanceAmount > 0 ? (
-                          <span className="text-rose-600 font-bold">{formatIndianCurrency(inv.balanceAmount)}</span>
+                          <div>
+                            <span className="text-rose-600 font-black">{formatIndianCurrency(inv.balanceAmount)}</span>
+                            <span className="block text-[9.5px] text-rose-500 font-medium">
+                              ({100 - paidPercent}% बाकी)
+                            </span>
+                          </div>
                         ) : (
-                          <span className="text-emerald-600 font-bold">₹0.00 (चुकता)</span>
+                          <span className="text-emerald-600 font-black">₹0.00 (चुकता)</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -386,7 +400,7 @@ export default function InvoicesListPage() {
               <div>
                 <h3 className="text-base font-black flex items-center gap-2">
                   <DollarSign className="w-5 h-5" />
-                  {language === 'hi' ? 'बिल भुगतान दर्ज करें' : 'Record Invoice Payment'}
+                  {language === 'hi' ? 'बिल भुगतान दर्ज करें (Record Payment)' : 'Record Invoice Payment'}
                 </h3>
                 <p className="text-xs text-emerald-100 mt-0.5">
                   बिल #{selectedInvoice.invoiceNumber} • {selectedInvoice.party.businessName || selectedInvoice.party.name}
@@ -403,35 +417,70 @@ export default function InvoicesListPage() {
             {/* Modal Form */}
             <form onSubmit={handlePaymentSubmit} className="p-6 space-y-4">
               {/* Outstanding Info Box */}
-              <div className="bg-slate-50 dark:bg-slate-700/50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-slate-50 dark:bg-slate-700/50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 grid grid-cols-3 gap-2 text-xs">
                 <div>
                   <span className="text-slate-500 block">{language === 'hi' ? 'कुल बिल राशि' : 'Total Bill'}:</span>
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">
+                  <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
                     {formatIndianCurrency(selectedInvoice.finalAmount)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">{language === 'hi' ? 'बाकी लेना (Pending)' : 'Balance Due'}:</span>
-                  <span className="font-black text-rose-600 text-sm">
+                  <span className="text-slate-500 block">{language === 'hi' ? 'पहले से जमा' : 'Already Paid'}:</span>
+                  <span className="font-bold text-emerald-600 text-xs sm:text-sm">
+                    {formatIndianCurrency(selectedInvoice.paidAmount || 0)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">{language === 'hi' ? 'वर्तमान बाकी' : 'Balance Due'}:</span>
+                  <span className="font-black text-rose-600 text-xs sm:text-sm">
                     {formatIndianCurrency(selectedInvoice.balanceAmount)}
                   </span>
                 </div>
               </div>
 
-              {/* Amount Input */}
+              {/* Amount Input & Quick Fraction Presets */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                    {language === 'hi' ? 'भुगतान राशि (₹ Amount Received)' : 'Amount Received (₹)'}
+                    {language === 'hi' ? 'अब भुगतान राशि दर्ज करें (₹ Amount to Receive)' : 'Amount to Receive (₹)'}
                   </label>
+                  <span className="text-[10px] text-slate-500">
+                    बाकी: ₹{selectedInvoice.balanceAmount.toLocaleString('en-IN')}
+                  </span>
+                </div>
+
+                {/* Quick Fraction Buttons (Half, Full, etc.) */}
+                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setPayAmount(Math.round(selectedInvoice.balanceAmount / 2))}
+                    className="py-1 px-2 text-[10.5px] font-bold rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition text-center"
+                  >
+                    ½ आधा (50%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayAmount(Math.round(selectedInvoice.balanceAmount * 0.25))}
+                    className="py-1 px-2 text-[10.5px] font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 transition text-center"
+                  >
+                    ¼ 25%
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayAmount(Math.round(selectedInvoice.balanceAmount * 0.75))}
+                    className="py-1 px-2 text-[10.5px] font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 transition text-center"
+                  >
+                    ¾ 75%
+                  </button>
                   <button
                     type="button"
                     onClick={() => setPayAmount(selectedInvoice.balanceAmount)}
-                    className="text-[11px] font-bold text-indigo-600 hover:underline"
+                    className="py-1 px-2 text-[10.5px] font-bold rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-200 transition text-center"
                   >
-                    {language === 'hi' ? 'पूरा भरें (Full Amount)' : 'Fill Full Amount'}
+                    ✓ पूरा (100%)
                   </button>
                 </div>
+
                 <input
                   type="number"
                   step="any"
@@ -442,6 +491,18 @@ export default function InvoicesListPage() {
                   required
                   className="w-full text-base font-bold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-emerald-500"
                 />
+
+                {/* Live Math Subtraction Calculation */}
+                {payAmount > 0 && (
+                  <div className="mt-2 bg-emerald-50/70 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                    <span>
+                      इस भुगतान के बाद बाकी बचेगा:
+                    </span>
+                    <span className="font-black text-xs">
+                      {formatIndianCurrency(Math.max(0, selectedInvoice.balanceAmount - Number(payAmount)))}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Payment Mode */}
@@ -529,7 +590,7 @@ export default function InvoicesListPage() {
                   className="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  {language === 'hi' ? 'जमा करें और चुकता करें' : 'Save & Record Payment'}
+                  {language === 'hi' ? 'जमा करें और खाता अपडेट करें' : 'Save & Record Payment'}
                 </button>
               </div>
             </form>
