@@ -1,7 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { SmartAiAssistant } from '@/components/ai/SmartAiAssistant';
 
 export const metadata: Metadata = {
   title: 'MandAi - Krishi Mandi & Business Billing Suite',
@@ -23,6 +24,7 @@ export default function RootLayout({
             {children}
           </main>
         </div>
+        <SmartAiAssistant />
       </body>
     </html>
   );
