@@ -2,13 +2,14 @@
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
-import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily } from '@/lib/gstUtils';
+import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily, getDocumentMeta } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfile }> = ({ invoice, company }) => {
   const party = invoice.party;
   const isInterState = invoice.isInterState;
   const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
+  const docMeta = getDocumentMeta(invoice.docType, 'en');
 
   return (
     <div 
@@ -45,12 +46,16 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
 
         <div className="text-right">
           <div className="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-2 text-right">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">TAX INVOICE</span>
-            <span className="text-xl font-black text-slate-900 font-mono">#{invoice.invoiceNumber}</span>
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">{docMeta.title}</span>
+            <span className="text-xl font-black text-slate-900 font-mono">
+              {invoice.invoiceNumber.startsWith('EST-') || invoice.invoiceNumber.startsWith('DC-') || invoice.invoiceNumber.startsWith('CN-')
+                ? invoice.invoiceNumber
+                : `#${invoice.invoiceNumber}`}
+            </span>
           </div>
           <div className="mt-2 text-xs text-slate-600 space-y-0.5">
-            <p><span className="text-slate-500">Invoice Date:</span> <span className="font-semibold text-slate-800">{invoice.invoiceDate}</span></p>
-            <p><span className="text-slate-500">Due Date:</span> <span className="font-semibold text-rose-600">{invoice.dueDate}</span></p>
+            <p><span className="text-slate-500">{docMeta.dateLabel}:</span> <span className="font-semibold text-slate-800">{invoice.invoiceDate}</span></p>
+            <p><span className="text-slate-500">{docMeta.dueLabel}:</span> <span className="font-semibold text-rose-600">{invoice.dueDate}</span></p>
             <p><span className="text-slate-500">Place of Supply:</span> <span className="font-semibold">{invoice.placeOfSupply}</span></p>
           </div>
         </div>

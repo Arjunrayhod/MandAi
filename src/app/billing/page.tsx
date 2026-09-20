@@ -30,6 +30,7 @@ export default function InvoicesListPage() {
   const { invoices, company, bankAccounts, recordPayment, deleteInvoice, language } = useAppStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
+  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'tax_invoice' | 'quotation_estimate' | 'delivery_challan' | 'credit_note'>('all');
 
   // Payment Modal State
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -54,7 +55,12 @@ export default function InvoicesListPage() {
         ? inv.status === 'paid' || inv.balanceAmount <= 0
         : inv.balanceAmount > 0;
 
-    return matchesSearch && matchesStatus;
+    const matchesDocType =
+      docTypeFilter === 'all'
+        ? true
+        : (inv.docType || 'tax_invoice') === docTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesDocType;
   });
 
   // KPI calculations
@@ -208,39 +214,73 @@ export default function InvoicesListPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder={t('search_placeholder', language)}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-indigo-500"
-          />
+      {/* Document Type & Status Filter Bar */}
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+        {/* Document Type Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-700">
+          <span className="text-[11px] font-bold text-slate-500 mr-1">
+            {language === 'hi' ? 'दस्तावेज़ प्रकार:' : 'Doc Type:'}
+          </span>
+          {[
+            { id: 'all', label: language === 'hi' ? 'सभी प्रकार (All)' : 'All Documents', count: invoices.length },
+            { id: 'tax_invoice', label: language === 'hi' ? '🧾 टैक्स बिल (Invoices)' : 'Tax Invoices', count: invoices.filter(i => (i.docType || 'tax_invoice') === 'tax_invoice').length },
+            { id: 'quotation_estimate', label: language === 'hi' ? '📄 कोटेशन (Estimates)' : 'Quotations', count: invoices.filter(i => i.docType === 'quotation_estimate').length },
+            { id: 'delivery_challan', label: language === 'hi' ? '📦 चालान (Challans)' : 'Delivery Challans', count: invoices.filter(i => i.docType === 'delivery_challan').length },
+            { id: 'credit_note', label: language === 'hi' ? '🔄 क्रेडिट नोट (Credit Notes)' : 'Credit Notes', count: invoices.filter(i => i.docType === 'credit_note').length },
+          ].map((dt) => (
+            <button
+              key={dt.id}
+              onClick={() => setDocTypeFilter(dt.id as any)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                docTypeFilter === dt.id
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              <span>{dt.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                docTypeFilter === dt.id ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200'
+              }`}>
+                {dt.count}
+              </span>
+            </button>
+          ))}
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
-          <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-semibold w-full sm:w-auto">
-            {(['all', 'unpaid', 'paid'] as const).map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg capitalize transition ${
-                  statusFilter === st
-                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
-                    : 'text-slate-600 dark:text-slate-300'
-                }`}
-              >
-                {st === 'all'
-                  ? `${t('filter_all_docs', language)} (${invoices.length})`
-                  : st === 'unpaid'
-                  ? `⚠️ ${t('pending', language)} (${invoices.filter(i => i.balanceAmount > 0).length})`
-                  : `✓ ${t('paid', language)} (${invoices.filter(i => i.status === 'paid' || i.balanceAmount <= 0).length})`}
-              </button>
-            ))}
+        {/* Search and Payment Status */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder={t('search_placeholder', language)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-indigo-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
+            <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-semibold w-full sm:w-auto">
+              {(['all', 'unpaid', 'paid'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg capitalize transition ${
+                    statusFilter === st
+                      ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
+                      : 'text-slate-600 dark:text-slate-300'
+                  }`}
+                >
+                  {st === 'all'
+                    ? `${t('filter_all_docs', language)} (${invoices.length})`
+                    : st === 'unpaid'
+                    ? `⚠️ ${t('pending', language)} (${invoices.filter(i => i.balanceAmount > 0).length})`
+                    : `✓ ${t('paid', language)} (${invoices.filter(i => i.status === 'paid' || i.balanceAmount <= 0).length})`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -266,7 +306,7 @@ export default function InvoicesListPage() {
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
                     <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                    {language === 'hi' ? 'कोई बिल नहीं मिला।' : language === 'en' ? 'No invoices found.' : 'Koi bill nahi mila.'}
+                    {language === 'hi' ? 'कोई दस्तावेज़ / बिल नहीं मिला।' : language === 'en' ? 'No documents found.' : 'Koi bill nahi mila.'}
                   </td>
                 </tr>
               ) : (
@@ -274,11 +314,31 @@ export default function InvoicesListPage() {
                   const isPaid = inv.status === 'paid' || inv.balanceAmount <= 0;
                   const isPartial = (inv.paidAmount || 0) > 0 && inv.balanceAmount > 0;
                   const paidPercent = inv.finalAmount > 0 ? Math.round(((inv.paidAmount || 0) / inv.finalAmount) * 100) : 0;
+                  const isCustomPrefix = inv.invoiceNumber.startsWith('EST-') || inv.invoiceNumber.startsWith('DC-') || inv.invoiceNumber.startsWith('CN-') || inv.invoiceNumber.startsWith('#');
 
                   return (
                     <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition">
-                      <td className="py-3.5 px-4 font-bold font-mono text-indigo-600">
-                        #{inv.invoiceNumber}
+                      <td className="py-3.5 px-4 font-mono">
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400 block text-xs">
+                          {isCustomPrefix ? inv.invoiceNumber : `#${inv.invoiceNumber}`}
+                        </span>
+                        <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 ${
+                          inv.docType === 'quotation_estimate'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                            : inv.docType === 'delivery_challan'
+                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                            : inv.docType === 'credit_note'
+                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                        }`}>
+                          {inv.docType === 'quotation_estimate'
+                            ? (language === 'hi' ? 'कोटेशन / एस्टीमेट' : 'Estimate')
+                            : inv.docType === 'delivery_challan'
+                            ? (language === 'hi' ? 'डिलीवरी चालान' : 'Challan')
+                            : inv.docType === 'credit_note'
+                            ? (language === 'hi' ? 'क्रेडिट नोट' : 'Credit Note')
+                            : (language === 'hi' ? 'टैक्स बिल' : 'Tax Invoice')}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <p className="font-bold text-slate-900 dark:text-white">

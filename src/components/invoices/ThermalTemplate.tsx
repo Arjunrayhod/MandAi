@@ -2,10 +2,12 @@
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
-import { formatIndianCurrency } from '@/lib/gstUtils';
+import { formatIndianCurrency, getDocumentMeta } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 export const ThermalTemplate: React.FC<{ invoice: Invoice; company: CompanyProfile }> = ({ invoice, company }) => {
+  const docMeta = getDocumentMeta(invoice.docType, 'en');
+
   return (
     <div 
       id="printable-invoice" 
@@ -23,12 +25,13 @@ export const ThermalTemplate: React.FC<{ invoice: Invoice; company: CompanyProfi
         <p className="text-[10px]">{company.city}, {company.state}</p>
         <p className="text-[10px]">GSTIN: {company.gstin}</p>
         <p className="text-[10px]">Mo: {company.phone}</p>
+        <p className="font-bold text-[11px] uppercase mt-1 border-t border-dashed border-black pt-0.5">{docMeta.title}</p>
       </div>
 
       <div className="py-2 border-b border-dashed border-black space-y-0.5 text-[10px]">
         <div className="flex justify-between">
-          <span>Bill No: #{invoice.invoiceNumber}</span>
-          <span>Date: {invoice.invoiceDate}</span>
+          <span>{docMeta.numberLabel}: {invoice.invoiceNumber.startsWith('EST-') || invoice.invoiceNumber.startsWith('DC-') || invoice.invoiceNumber.startsWith('CN-') ? invoice.invoiceNumber : `#${invoice.invoiceNumber}`}</span>
+          <span>{invoice.invoiceDate}</span>
         </div>
         <div>
           <span>Party: </span>

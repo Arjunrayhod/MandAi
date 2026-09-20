@@ -1,3 +1,5 @@
+import { DocumentType } from './types';
+
 export const INDIAN_STATES = [
   { code: '01', name: 'Jammu & Kashmir' },
   { code: '02', name: 'Himachal Pradesh' },
@@ -214,4 +216,75 @@ export function getInvoiceFontFamily(fontKey?: string): string {
     return INVOICE_FONTS.inter.fontFamily;
   }
   return INVOICE_FONTS[fontKey].fontFamily;
+}
+
+export interface DocumentMeta {
+  title: string;
+  badge: string;
+  numberLabel: string;
+  dateLabel: string;
+  dueLabel: string;
+  prefix: string;
+  isTaxInvoice: boolean;
+  themeColor: 'indigo' | 'amber' | 'purple' | 'rose';
+  saveButtonText: string;
+  summaryTitle: string;
+}
+
+export function getDocumentMeta(docType: DocumentType = 'tax_invoice', language: string = 'hi'): DocumentMeta {
+  switch (docType) {
+    case 'quotation_estimate':
+      return {
+        title: language === 'hi' ? 'अनुमान पत्र / कोटेशन' : 'ESTIMATE / QUOTATION',
+        badge: language === 'hi' ? 'अनुमानित दर पत्र (NOT A TAX INVOICE)' : 'ESTIMATE / NOT A TAX INVOICE',
+        numberLabel: language === 'hi' ? 'कोटेशन नं. (Estimate No.)' : 'Estimate / Quotation No.',
+        dateLabel: language === 'hi' ? 'कोटेशन दिनांक' : 'Estimate Date',
+        dueLabel: language === 'hi' ? 'वैधता तिथि (Valid Till)' : 'Valid Till Date',
+        prefix: 'EST-',
+        isTaxInvoice: false,
+        themeColor: 'amber',
+        saveButtonText: language === 'hi' ? 'कोटेशन सेव करें और प्रिंट देखें' : 'Save & Print Estimate',
+        summaryTitle: language === 'hi' ? 'कोटेशन / एस्टीमेट समरी' : 'Estimate Summary',
+      };
+    case 'delivery_challan':
+      return {
+        title: language === 'hi' ? 'डिलीवरी चालान (माल रवानगी)' : 'DELIVERY CHALLAN',
+        badge: language === 'hi' ? 'माल परिवहन हेतु (FOR TRANSPORT ONLY)' : 'FOR TRANSPORTATION / DELIVERY ONLY',
+        numberLabel: language === 'hi' ? 'चालान नं. (Challan No.)' : 'Challan No.',
+        dateLabel: language === 'hi' ? 'चालान दिनांक' : 'Challan Date',
+        dueLabel: language === 'hi' ? 'डिलीवरी दिनांक' : 'Delivery Date',
+        prefix: 'DC-',
+        isTaxInvoice: false,
+        themeColor: 'purple',
+        saveButtonText: language === 'hi' ? 'चालान सेव करें और प्रिंट देखें' : 'Save & Print Challan',
+        summaryTitle: language === 'hi' ? 'डिलीवरी चालान समरी' : 'Delivery Challan Summary',
+      };
+    case 'credit_note':
+      return {
+        title: language === 'hi' ? 'क्रेडिट नोट (बिक्री वापसी)' : 'CREDIT NOTE / SALES RETURN',
+        badge: language === 'hi' ? 'क्रेडिट समायोजन (CREDIT ADJUSTMENT NOTE)' : 'CREDIT ADJUSTMENT NOTE',
+        numberLabel: language === 'hi' ? 'क्रेडिट नोट नं. (CN No.)' : 'Credit Note No.',
+        dateLabel: language === 'hi' ? 'क्रेडिट नोट दिनांक' : 'Credit Note Date',
+        dueLabel: language === 'hi' ? 'मूल बिल संदर्भ (Original Inv)' : 'Original Inv Ref',
+        prefix: 'CN-',
+        isTaxInvoice: true,
+        themeColor: 'rose',
+        saveButtonText: language === 'hi' ? 'क्रेडिट नोट सेव करें और प्रिंट देखें' : 'Save & Print Credit Note',
+        summaryTitle: language === 'hi' ? 'क्रेडिट नोट समरी' : 'Credit Note Summary',
+      };
+    case 'tax_invoice':
+    default:
+      return {
+        title: language === 'hi' ? 'टैक्स बिल (कर बीजक)' : 'TAX INVOICE',
+        badge: language === 'hi' ? 'मूल प्रति (ORIGINAL FOR RECIPIENT)' : 'ORIGINAL FOR RECIPIENT',
+        numberLabel: language === 'hi' ? 'बिल नं. (Invoice No.)' : 'Invoice No.',
+        dateLabel: language === 'hi' ? 'बिल दिनांक (Invoice Date)' : 'Invoice Date',
+        dueLabel: language === 'hi' ? 'भुगतान देय तिथि (Due Date)' : 'Due Date',
+        prefix: '#',
+        isTaxInvoice: true,
+        themeColor: 'indigo',
+        saveButtonText: language === 'hi' ? 'बिल सेव करें और प्रिंट देखें' : 'Save & Print Invoice',
+        summaryTitle: language === 'hi' ? 'बिल समरी (Bill Summary)' : 'Bill Summary',
+      };
+  }
 }

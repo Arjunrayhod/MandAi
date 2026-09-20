@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { InvoiceItem, DocumentType } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
-import { INDIAN_STATES, formatIndianCurrency, numberToIndianWords } from '@/lib/gstUtils';
+import { INDIAN_STATES, formatIndianCurrency, numberToIndianWords, getDocumentMeta } from '@/lib/gstUtils';
 import { 
   Receipt, 
   Plus, 
@@ -27,7 +27,7 @@ import Link from 'next/link';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const { company, parties, products, addInvoice, addParty, addProduct, language } = useAppStore();
+  const { invoices, company, parties, products, addInvoice, addParty, addProduct, language } = useAppStore();
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dueDefault = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
@@ -41,6 +41,24 @@ export default function CreateInvoicePage() {
   const [billingAddress, setBillingAddress] = useState<string>(parties[0]?.billingAddress || '');
   const [placeOfSupply, setPlaceOfSupply] = useState<string>(`${parties[0]?.state || 'Madhya Pradesh'} ( ${parties[0]?.stateCode || '23'} )`);
   const [isInterState, setIsInterState] = useState<boolean>(false);
+
+  const docMeta = getDocumentMeta(docType, language);
+
+  const handleDocTypeChange = (newType: DocumentType) => {
+    setDocType(newType);
+    if (newType === 'tax_invoice') {
+      setInvoiceNumber(String(company.invoiceNextNumber || 170));
+    } else if (newType === 'quotation_estimate') {
+      const existingQuotes = invoices.filter((inv) => inv.docType === 'quotation_estimate').length;
+      setInvoiceNumber(`EST-${101 + existingQuotes}`);
+    } else if (newType === 'delivery_challan') {
+      const existingChallans = invoices.filter((inv) => inv.docType === 'delivery_challan').length;
+      setInvoiceNumber(`DC-${101 + existingChallans}`);
+    } else if (newType === 'credit_note') {
+      const existingCredits = invoices.filter((inv) => inv.docType === 'credit_note').length;
+      setInvoiceNumber(`CN-${101 + existingCredits}`);
+    }
+  };
   
   // GoGST Transport & E-Way fields
   const [vehicleNo, setVehicleNo] = useState<string>('MP 44 GA 8819');
@@ -412,7 +430,7 @@ export default function CreateInvoicePage() {
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition transform active:scale-95"
         >
           <Save className="w-4 h-4" />
-          {getTranslation('save_and_print', language)}
+          {docMeta.saveButtonText}
         </button>
       </div>
 
@@ -430,11 +448,11 @@ export default function CreateInvoicePage() {
             <button
               key={dt.id}
               type="button"
-              onClick={() => setDocType(dt.id as DocumentType)}
-              className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition ${
+              onClick={() => handleDocTypeChange(dt.id as DocumentType)}
+              className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
+                  ? 'bg-indigo-600 text-white shadow-md scale-[1.02]'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -453,11 +471,11 @@ export default function CreateInvoicePage() {
             {/* Invoice Meta */}
             <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
               <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-                {getTranslation('heading_invoice_info', language)}
+                {docMeta.title} विवरण
               </h3>
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                  {getTranslation('invoice_number', language)}
+                  {docMeta.numberLabel} *
                 </label>
                 <input
                   type="text"
@@ -471,7 +489,7 @@ export default function CreateInvoicePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    {getTranslation('invoice_date', language)}
+                    {docMeta.dateLabel} *
                   </label>
                   <input
                     type="date"
@@ -483,11 +501,10 @@ export default function CreateInvoicePage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    {getTranslation('due_date', language)}
+                    {docMeta.dueLabel}
                   </label>
                   <input
                     type="date"
-                    required
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
                     className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 text-rose-600 font-medium"
@@ -905,7 +922,7 @@ export default function CreateInvoicePage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
                 <Receipt className="w-4 h-4 text-indigo-400" />
-                {language === 'hi' ? 'लाइव बिल गणना (Live Bill Summary)' : 'Live Bill Summary'}
+                {docMeta.summaryTitle}
               </h3>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -1028,7 +1045,7 @@ export default function CreateInvoicePage() {
                 className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-black text-xs py-3 rounded-xl shadow-lg transition transform active:scale-95 cursor-pointer mt-3"
               >
                 <Printer className="w-4 h-4" />
-                <span>{language === 'hi' ? '💾 सेव करें और प्रिंट देखें' : 'Save & Print Invoice'}</span>
+                <span>💾 {docMeta.saveButtonText}</span>
               </button>
             </div>
           </div>
@@ -1043,11 +1060,11 @@ export default function CreateInvoicePage() {
           </div>
           <div>
             <p className="text-xs font-bold text-slate-900 dark:text-white">
-              {language === 'hi' ? 'बिल विवरण पूरा भर लिया?' : 'Ready to generate bill?'}
+              {docMeta.title} तैयार है?
             </p>
             <p className="text-[11px] text-slate-500">
               {language === 'hi'
-                ? `कुल बिल: ${formatIndianCurrency(finalAmount)} (${items.length} आइटम)`
+                ? `कुल राशि: ${formatIndianCurrency(finalAmount)} (${items.length} आइटम)`
                 : `Total: ${formatIndianCurrency(finalAmount)} (${items.length} items)`}
             </p>
           </div>
@@ -1066,7 +1083,7 @@ export default function CreateInvoicePage() {
             className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-black text-sm px-8 py-3 rounded-2xl shadow-xl hover:shadow-indigo-500/25 transition transform active:scale-95 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>{language === 'hi' ? '💾 बिल सेव करें और प्रिंट करें (Save & Print)' : 'Save & Print Invoice'}</span>
+            <span>💾 {docMeta.saveButtonText}</span>
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CompanyProfile, Invoice } from '@/lib/types';
-import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily } from '@/lib/gstUtils';
+import { formatIndianCurrency, numberToIndianWords, getInvoiceFontFamily, getDocumentMeta } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 interface InvoiceTemplateProps {
@@ -30,6 +30,7 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
   const isInterState = invoice.isInterState;
   const totalInWordsText = invoice.totalInWords || numberToIndianWords(invoice.finalAmount);
   const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
+  const docMeta = getDocumentMeta(invoice.docType, 'en');
 
   return (
     <div 
@@ -98,10 +99,10 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
           <span className="font-bold text-black">GSTIN :</span> <span className="font-mono font-bold">{company.gstin}</span>
         </div>
         <div className="text-center text-[#0284c7] text-base font-black tracking-wider">
-          TAX INVOICE
+          {docMeta.title}
         </div>
         <div className="text-right text-[10.5px] uppercase font-bold tracking-wide text-gray-900">
-          ORIGINAL FOR RECIPIENT
+          {docMeta.badge}
         </div>
       </div>
 
@@ -144,15 +145,15 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
         <div>
           <div className="p-3 space-y-1.5">
             <div className="flex justify-between items-center py-1 border-b border-gray-200">
-              <span className="font-bold text-gray-900">Invoice No. :</span>
+              <span className="font-bold text-gray-900">{docMeta.numberLabel} :</span>
               <span className="font-black text-black text-sm font-mono">{invoice.invoiceNumber}</span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-gray-200">
-              <span className="font-bold text-gray-900">Invoice Date :</span>
+              <span className="font-bold text-gray-900">{docMeta.dateLabel} :</span>
               <span className="font-semibold text-gray-900">{formatDateDisplay(invoice.invoiceDate)}</span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-gray-200">
-              <span className="font-bold text-gray-900">Due Date :</span>
+              <span className="font-bold text-gray-900">{docMeta.dueLabel} :</span>
               <span className="font-semibold text-gray-900">{formatDateDisplay(invoice.dueDate)}</span>
             </div>
             {invoice.vehicleNo && (
