@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { 
   CompanyProfile, 
   Party, 
@@ -10,6 +10,7 @@ import {
   DashboardMetrics,
   MandiSaudaSlip
 } from './types';
+import { Language } from './translations';
 import { 
   DEFAULT_COMPANY, 
   DEFAULT_PARTIES, 
@@ -20,6 +21,7 @@ import {
 } from './defaultData';
 
 interface AppState {
+  language: Language;
   company: CompanyProfile;
   parties: Party[];
   products: Product[];
@@ -31,6 +33,7 @@ interface AppState {
   cashInHand: number;
 
   // Actions
+  setLanguage: (lang: Language) => void;
   updateCompany: (profile: Partial<CompanyProfile>) => void;
   
   // Parties
@@ -79,6 +82,7 @@ const getInitialState = () => {
     }
   }
   return {
+    language: 'hi' as Language,
     company: DEFAULT_COMPANY,
     parties: DEFAULT_PARTIES,
     products: DEFAULT_PRODUCTS,
@@ -93,6 +97,14 @@ const getInitialState = () => {
 
 export const useAppStore = create<AppState>((set, get) => ({
   ...getInitialState(),
+
+  setLanguage: (lang) => {
+    set((state) => {
+      const next = { ...state, language: lang };
+      if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return { language: lang };
+    });
+  },
 
   updateCompany: (profile) => {
     set((state) => {
@@ -265,7 +277,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
 
     set((state) => {
-      // 1. Update invoice paid & balance if linked
       let updatedInvoices = [...state.invoices];
       if (newPayment.invoiceId) {
         updatedInvoices = state.invoices.map((inv) => {
@@ -283,7 +294,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
       }
 
-      // 2. Update party balance
       const updatedParties = state.parties.map((p) => {
         if (p.id === newPayment.partyId) {
           return {
@@ -294,7 +304,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         return p;
       });
 
-      // 3. Update Bank or Cash balance
       let updatedCash = state.cashInHand;
       let updatedBanks = [...state.bankAccounts];
 
@@ -312,7 +321,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
       }
 
-      // 4. Create cash/bank transaction record
       const newTx: CashTransaction = {
         id: 'tx-' + Date.now(),
         type: newPayment.type === 'received' ? 'cash_in' : 'cash_out',
@@ -419,6 +427,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetToDefault: () => {
     if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);
     set({
+      language: 'hi',
       company: DEFAULT_COMPANY,
       parties: DEFAULT_PARTIES,
       products: DEFAULT_PRODUCTS,

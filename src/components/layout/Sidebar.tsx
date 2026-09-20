@@ -11,27 +11,27 @@ import {
   Wallet, 
   BarChart3, 
   Settings, 
-  ScrollText, 
   PlusCircle,
   Wheat,
   Scale
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-
-const NAV_ITEMS = [
-  { href: '/', label: 'डैशबोर्ड (Dashboard)', icon: LayoutDashboard },
-  { href: '/billing', label: 'बिलिंग / इनवॉइस (Invoices)', icon: Receipt },
-  { href: '/sauda', label: 'सौदा पर्चा (Sauda Parcha)', icon: Scale },
-  { href: '/parties', label: 'पार्टी / खाता (Parties & CRM)', icon: Users },
-  { href: '/inventory', label: 'माल व स्टॉक (Mandi Stock)', icon: Package },
-  { href: '/money', label: 'रोकड़ व बैंक (Money & Banks)', icon: Wallet },
-  { href: '/reports', label: 'रिपोर्ट्स व GST (Reports)', icon: BarChart3 },
-  { href: '/settings', label: 'दुकान सेटिंग (Shop Profile)', icon: Settings },
-];
+import { getTranslation, TRANSLATIONS } from '@/lib/translations';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { company } = useAppStore();
+  const { company, language } = useAppStore();
+
+  const navItems = [
+    { href: '/', label: getTranslation('nav_dashboard', language), icon: LayoutDashboard },
+    { href: '/billing', label: getTranslation('nav_invoices', language), icon: Receipt },
+    { href: '/sauda', label: getTranslation('nav_sauda', language), icon: Scale },
+    { href: '/parties', label: getTranslation('nav_parties', language), icon: Users },
+    { href: '/inventory', label: getTranslation('nav_inventory', language), icon: Package },
+    { href: '/money', label: getTranslation('nav_money', language), icon: Wallet },
+    { href: '/reports', label: getTranslation('nav_reports', language), icon: BarChart3 },
+    { href: '/settings', label: getTranslation('nav_settings', language), icon: Settings },
+  ];
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 print:hidden select-none">
@@ -45,7 +45,7 @@ export const Sidebar: React.FC = () => {
             {company.name || 'MandAi SaaS'}
           </h2>
           <span className="text-[10px] font-semibold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-full inline-block border border-sky-800/60 mt-0.5">
-            🌾 मंडी व्यापार एडिशन
+            {getTranslation('mandi_edition', language)}
           </span>
         </div>
       </div>
@@ -57,13 +57,13 @@ export const Sidebar: React.FC = () => {
           className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition transform active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
-          + नया बिल बनाएं (New Bill)
+          {getTranslation('new_bill_btn', language)}
         </Link>
       </div>
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
 

@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
+import { getTranslation } from '@/lib/translations';
 import { formatIndianCurrency } from '@/lib/gstUtils';
 import { 
   TrendingUp, 
@@ -18,12 +19,12 @@ import {
   Share2,
   Printer,
   ChevronRight,
-  Clock,
-  Sparkles
+  Sparkles,
+  Scale
 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { invoices, parties, products, company, getMetrics, cashInHand, bankAccounts } = useAppStore();
+  const { invoices, parties, products, company, getMetrics, cashInHand, language } = useAppStore();
   const metrics = getMetrics();
 
   const recentInvoices = invoices.slice(0, 5);
@@ -31,8 +32,6 @@ export default function DashboardPage() {
     .filter((p) => p.currentBalance > 0 && p.balanceType === 'to_receive')
     .sort((a, b) => b.currentBalance - a.currentBalance)
     .slice(0, 4);
-
-  const lowStockProducts = products.filter((p) => p.currentStock <= p.minStockLevel);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -42,13 +41,13 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-indigo-400" />
-              मंडी व्यापार डैशबोर्ड (Mandi Vyapari Suite)
+              {language === 'hi' ? 'मंडी व्यापार डैशबोर्ड' : language === 'en' ? 'Mandi Trade Dashboard' : 'Mandi Vyapar Dashboard'}
             </span>
             <span className="text-xs text-slate-400">Neemuch Krishi Mandi</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight">{company.name}</h1>
           <p className="text-xs text-slate-300">
-            GSTIN: <span className="font-mono text-indigo-400 font-bold">{company.gstin}</span> • प्रोपराइटर: {company.ownerName}
+            GSTIN: <span className="font-mono text-indigo-400 font-bold">{company.gstin}</span> • {language === 'hi' ? 'प्रोपराइटर' : 'Proprietor'}: {company.ownerName}
           </p>
         </div>
 
@@ -59,14 +58,21 @@ export default function DashboardPage() {
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition transform active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            + नया बिल (GST Bill)
+            {getTranslation('new_bill_btn', language)}
+          </Link>
+          <Link
+            href="/sauda"
+            className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition"
+          >
+            <Scale className="w-4 h-4" />
+            {getTranslation('nav_sauda', language)}
           </Link>
           <Link
             href="/money"
             className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition"
           >
             <Wallet className="w-4 h-4 text-emerald-400" />
-            रोकड़ बही (Cashbook)
+            {getTranslation('nav_money', language)}
           </Link>
         </div>
       </div>
@@ -76,7 +82,7 @@ export default function DashboardPage() {
         {/* Today's Sales */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">आज की कुल बिक्री (Sales)</span>
+            <span className="text-xs font-semibold text-slate-500">{getTranslation('today_sales', language)}</span>
             <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40">
               <TrendingUp className="w-4 h-4" />
             </span>
@@ -86,7 +92,7 @@ export default function DashboardPage() {
               {formatIndianCurrency(metrics.todaySales)}
             </h3>
             <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-              <span className="text-emerald-600 font-bold">16-Sep Sample Bil</span> शामिल है
+              <span className="text-emerald-600 font-bold">16-Sep Sample Bill</span> included
             </p>
           </div>
         </div>
@@ -94,7 +100,7 @@ export default function DashboardPage() {
         {/* Total Receivable */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">मार्केट उधारी (Receivables)</span>
+            <span className="text-xs font-semibold text-slate-500">{getTranslation('market_receivable', language)}</span>
             <span className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-900/40">
               <ArrowDownRight className="w-4 h-4" />
             </span>
@@ -103,14 +109,16 @@ export default function DashboardPage() {
             <h3 className="text-2xl font-black text-amber-600">
               {formatIndianCurrency(metrics.totalReceivable)}
             </h3>
-            <p className="text-[11px] text-slate-500 mt-1">पार्टियों से लेना बाकी (Len-den)</p>
+            <p className="text-[11px] text-slate-500 mt-1">
+              {language === 'hi' ? 'पार्टियों से लेना बाकी (लेन-देन)' : language === 'en' ? 'Outstanding from buyers' : 'Parties se lena baaki'}
+            </p>
           </div>
         </div>
 
         {/* Bank & Cash Balance */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">कुल बैंक बैलेंस (HDFC+SBI)</span>
+            <span className="text-xs font-semibold text-slate-500">{getTranslation('bank_balance', language)}</span>
             <span className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/40">
               <Building2 className="w-4 h-4" />
             </span>
@@ -120,7 +128,7 @@ export default function DashboardPage() {
               {formatIndianCurrency(metrics.bankBalance)}
             </h3>
             <p className="text-[11px] text-slate-500 mt-1">
-              कैश इन हैंड: <span className="font-bold text-slate-700 dark:text-slate-300">{formatIndianCurrency(cashInHand)}</span>
+              {getTranslation('cash_in_hand', language)}: <span className="font-bold text-slate-700 dark:text-slate-300">{formatIndianCurrency(cashInHand)}</span>
             </p>
           </div>
         </div>
@@ -128,17 +136,19 @@ export default function DashboardPage() {
         {/* Low Stock Warning */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">मंडी गोडाउन स्टॉक (Stock Alert)</span>
+            <span className="text-xs font-semibold text-slate-500">{getTranslation('stock_alert', language)}</span>
             <span className="p-2 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-900/40">
               <AlertTriangle className="w-4 h-4" />
             </span>
           </div>
           <div className="mt-3">
             <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-              {products.length} <span className="text-xs font-medium text-slate-500">जिंस आइटम</span>
+              {products.length} <span className="text-xs font-medium text-slate-500">{language === 'hi' ? 'जिंस' : 'Items'}</span>
             </h3>
             <p className="text-[11px] text-rose-600 font-medium mt-1">
-              {metrics.lowStockCount > 0 ? `${metrics.lowStockCount} आइटम री-ऑर्डर स्तर पर` : 'स्टॉक पर्याप्त है'}
+              {metrics.lowStockCount > 0 
+                ? (language === 'hi' ? `${metrics.lowStockCount} आइटम री-ऑर्डर स्तर पर` : `${metrics.lowStockCount} low stock alerts`)
+                : (language === 'hi' ? 'स्टॉक पर्याप्त है' : 'Stock is sufficient')}
             </p>
           </div>
         </div>
@@ -152,28 +162,30 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-indigo-600" />
-                हाल ही के बिल व इनवॉइस (Recent Invoices)
+                {getTranslation('recent_invoices', language)}
               </h2>
-              <p className="text-xs text-slate-500">मंडी व्यापार खरीदारों के जारी बिल</p>
+              <p className="text-xs text-slate-500">
+                {language === 'hi' ? 'मंडी व्यापार खरीदारों के जारी बिल' : language === 'en' ? 'Invoices issued to mandi buyers' : 'Mandi vyapar party bills'}
+              </p>
             </div>
             <Link
               href="/billing"
               className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
             >
-              सभी देखें <ChevronRight className="w-3.5 h-3.5" />
+              {language === 'hi' ? 'सभी देखें' : language === 'en' ? 'View All' : 'Sabhi Dekhein'} <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3">बिल नं.</th>
-                  <th className="py-2.5 px-3">पार्टी / फर्म</th>
-                  <th className="py-2.5 px-3">तारीख</th>
-                  <th className="py-2.5 px-3 text-right">कुल राशि</th>
-                  <th className="py-2.5 px-3 text-center">स्थिति</th>
-                  <th className="py-2.5 px-3 text-right">एक्शन</th>
+                <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
+                  <th className="py-2.5 px-3">{getTranslation('invoice_number', language)}</th>
+                  <th className="py-2.5 px-3">Party / Firm</th>
+                  <th className="py-2.5 px-3">{getTranslation('invoice_date', language)}</th>
+                  <th className="py-2.5 px-3 text-right">{getTranslation('grand_total', language)}</th>
+                  <th className="py-2.5 px-3 text-center">Status</th>
+                  <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -198,7 +210,7 @@ export default function DashboardPage() {
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                           : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
                       }`}>
-                        {inv.status === 'paid' ? 'Paid' : 'Unpaid (बाकी)'}
+                        {inv.status === 'paid' ? 'Paid' : (language === 'hi' ? 'बाकी (Unpaid)' : 'Unpaid')}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -207,7 +219,7 @@ export default function DashboardPage() {
                         className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-600 hover:text-white text-slate-700 dark:text-slate-200 font-bold px-2.5 py-1 rounded-lg text-[11px] transition"
                       >
                         <Printer className="w-3 h-3" />
-                        देखें / प्रिंट
+                        {language === 'hi' ? 'देखें / प्रिंट' : language === 'en' ? 'View / Print' : 'Dekhein / Print'}
                       </Link>
                     </td>
                   </tr>
@@ -224,12 +236,14 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Users className="w-5 h-5 text-amber-500" />
-                  पार्टी बाकी खाता (Udhaar)
+                  {getTranslation('party_udhaar_ledger', language)}
                 </h2>
-                <p className="text-xs text-slate-500">सर्वोच्च बकाया वाले व्यापारी</p>
+                <p className="text-xs text-slate-500">
+                  {language === 'hi' ? 'सर्वोच्च बकाया वाले व्यापारी' : language === 'en' ? 'Top outstanding parties' : 'Top baaki parties'}
+                </p>
               </div>
               <Link href="/parties" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">
-                सब <ChevronRight className="w-3.5 h-3.5 inline" />
+                {language === 'hi' ? 'सब' : 'All'} <ChevronRight className="w-3.5 h-3.5 inline" />
               </Link>
             </div>
 
@@ -248,7 +262,9 @@ export default function DashboardPage() {
                     <span className="font-bold text-xs text-rose-600 block">
                       {formatIndianCurrency(party.currentBalance)}
                     </span>
-                    <span className="text-[9px] text-slate-400">लेना बाकी</span>
+                    <span className="text-[9px] text-slate-400">
+                      {language === 'hi' ? 'लेना बाकी' : language === 'en' ? 'Due' : 'Lena Baaki'}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -260,7 +276,7 @@ export default function DashboardPage() {
               href="/parties"
               className="w-full block text-center py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-300 font-bold text-xs rounded-xl transition"
             >
-              + नया ग्राहक / पार्टी जोड़ें
+              {getTranslation('add_party', language)}
             </Link>
           </div>
         </div>
