@@ -9,10 +9,45 @@
   --foreground: #0f172a;
 }
 
-body {
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   color: var(--foreground);
   background: var(--background);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth Touch Scrolling on iOS & Mobile Browsers */
+.overflow-x-auto, .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ultra Slim Clean Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Ensure all tables are responsive and don't push screen boundaries */
+table {
+  border-collapse: collapse;
 }
 
 @media print {
@@ -21,6 +56,7 @@ body {
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
   }
   
   nav, aside, header, .no-print, .print-hide {

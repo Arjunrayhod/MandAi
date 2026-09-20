@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -48,16 +48,18 @@ export default function InvoiceDetailPage() {
       />
 
       {/* Invoice Render Area */}
-      <div className="bg-slate-200/60 dark:bg-slate-950 p-2 sm:p-8 rounded-2xl print:p-0 print:bg-transparent flex justify-center">
-        {template === 'classic_rathore' && (
-          <RathoreClassicTemplate invoice={invoice} company={company} />
-        )}
-        {template === 'modern_mandi' && (
-          <ModernTemplate invoice={invoice} company={company} />
-        )}
-        {template === 'thermal_pos' && (
-          <ThermalTemplate invoice={invoice} company={company} />
-        )}
+      <div className="bg-slate-200/60 dark:bg-slate-950 p-1 sm:p-6 md:p-8 rounded-2xl print:p-0 print:bg-transparent w-full overflow-x-auto">
+        <div className="min-w-fit mx-auto flex justify-center">
+          {template === 'classic_rathore' && (
+            <RathoreClassicTemplate invoice={invoice} company={company} />
+          )}
+          {template === 'modern_mandi' && (
+            <ModernTemplate invoice={invoice} company={company} />
+          )}
+          {template === 'thermal_pos' && (
+            <ThermalTemplate invoice={invoice} company={company} />
+          )}
+        </div>
       </div>
     </div>
   );

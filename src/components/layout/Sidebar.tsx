@@ -13,14 +13,15 @@ import {
   Settings, 
   PlusCircle,
   Wheat,
-  Scale
+  Scale,
+  X
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-import { getTranslation, TRANSLATIONS } from '@/lib/translations';
+import { getTranslation } from '@/lib/translations';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { company, language } = useAppStore();
+  const { company, language, mobileSidebarOpen, setMobileSidebarOpen } = useAppStore();
 
   const navItems = [
     { href: '/', label: getTranslation('nav_dashboard', language), icon: LayoutDashboard },
@@ -33,35 +34,48 @@ export const Sidebar: React.FC = () => {
     { href: '/settings', label: getTranslation('nav_settings', language), icon: Settings },
   ];
 
-  return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 print:hidden select-none">
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300 select-none">
       {/* Brand Logo & Name */}
-      <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-        {company.logoUrl ? (
-          <img
-            src={company.logoUrl}
-            alt={company.name}
-            className="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-700 shadow-md shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shrink-0">
-            <Wheat className="w-6 h-6" />
+      <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {company.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={company.name}
+              className="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-700 shadow-md shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shrink-0">
+              <Wheat className="w-6 h-6" />
+            </div>
+          )}
+          <div className="overflow-hidden min-w-0">
+            <h2 className="text-sm font-bold text-white truncate tracking-tight">
+              {company.name || 'MandAi SaaS'}
+            </h2>
+            <span className="text-[10px] font-semibold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-full inline-block border border-sky-800/60 mt-0.5">
+              {getTranslation('mandi_edition', language)}
+            </span>
           </div>
-        )}
-        <div className="overflow-hidden">
-          <h2 className="text-sm font-bold text-white truncate tracking-tight">
-            {company.name || 'MandAi SaaS'}
-          </h2>
-          <span className="text-[10px] font-semibold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded-full inline-block border border-sky-800/60 mt-0.5">
-            {getTranslation('mandi_edition', language)}
-          </span>
         </div>
+
+        {/* Close Button on Mobile Drawer */}
+        <button
+          type="button"
+          onClick={() => setMobileSidebarOpen(false)}
+          className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Quick Action Button */}
       <div className="p-3">
         <Link
           href="/billing/new"
+          onClick={() => setMobileSidebarOpen(false)}
           className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition transform active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
@@ -79,6 +93,7 @@ export const Sidebar: React.FC = () => {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileSidebarOpen(false)}
               className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                 isActive
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -115,6 +130,31 @@ export const Sidebar: React.FC = () => {
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 shrink-0"></span>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar: Permanent on md+ screens */}
+      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col shrink-0 border-r border-slate-800 print:hidden select-none">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-Over Drawer: Active when mobileSidebarOpen is true */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+
+          {/* Drawer Panel */}
+          <aside className="relative w-4/5 max-w-xs h-full bg-slate-900 shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

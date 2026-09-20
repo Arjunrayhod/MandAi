@@ -63,6 +63,11 @@ interface AppState {
   // Mandi Sauda Parcha
   addSaudaSlip: (slip: Omit<MandiSaudaSlip, 'id'>) => MandiSaudaSlip;
 
+  // Mobile UI
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
+  toggleMobileSidebar: () => void;
+
   // Reset demo
   resetToDefault: () => void;
 
@@ -140,6 +145,9 @@ const getInitialState = () => {
 
 export const useAppStore = create<AppState>((set, get) => ({
   ...getInitialState(),
+  mobileSidebarOpen: false,
+  setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
+  toggleMobileSidebar: () => set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
 
   setLanguage: (lang) => {
     set((state) => {

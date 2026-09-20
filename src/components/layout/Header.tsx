@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { Language, getTranslation } from '@/lib/translations';
-import { Store, ReceiptText, Bell, Globe, Wifi, WifiOff } from 'lucide-react';
+import { Store, ReceiptText, Bell, Globe, Wifi, WifiOff, Menu } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { company, getMetrics, language, setLanguage } = useAppStore();
+  const { company, getMetrics, language, setLanguage, toggleMobileSidebar } = useAppStore();
   const metrics = getMetrics();
   const [isOnline, setIsOnline] = useState<boolean>(true);
 
@@ -26,10 +26,20 @@ export const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0 print:hidden select-none">
-      {/* Left Search / Info */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+    <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between shrink-0 print:hidden select-none">
+      {/* Left Search / Mobile Menu / Info */}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Mobile Hamburger Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleMobileSidebar}
+          className="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 sm:px-3 py-1.5 rounded-xl">
           {company.logoUrl ? (
             <img
               src={company.logoUrl}
