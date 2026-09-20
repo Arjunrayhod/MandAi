@@ -75,7 +75,32 @@ const getInitialState = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed.company?.bankDetails) {
+          if (parsed.company.bankDetails.upiId === '9340829951@hdfcbank' || !parsed.company.bankDetails.upiId) {
+            parsed.company.bankDetails.upiId = '7024537491@ybl';
+          }
+          if (parsed.company.bankDetails.accountName === 'RATHORE TRADING COMPANY' || !parsed.company.bankDetails.accountName) {
+            parsed.company.bankDetails.accountName = 'PRO RATHORE TRADING COMPANY';
+          }
+          if (parsed.company.bankDetails.branch?.includes('Vijay talkies')) {
+            parsed.company.bankDetails.branch = 'Vijay talkies compound neemuch 458441';
+          }
+        }
+        if (Array.isArray(parsed.bankAccounts)) {
+          parsed.bankAccounts = parsed.bankAccounts.map((b: any) => {
+            if (b.accountNumber === '50200098211151') {
+              return {
+                ...b,
+                accountName: 'PRO RATHORE TRADING COMPANY',
+                upiId: '7024537491@ybl',
+                branch: 'Vijay talkies compound neemuch 458441',
+              };
+            }
+            return b;
+          });
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse saved state', e);
       }

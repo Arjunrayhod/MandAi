@@ -144,21 +144,27 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
             <p className="text-xs font-bold text-slate-900">{numberToIndianWords(invoice.finalAmount)}</p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
-            <div className="text-[11px] space-y-1">
-              <p className="font-bold text-indigo-700 uppercase text-xs mb-1">Bank Payment Details</p>
-              <p><span className="font-medium text-slate-600">Bank:</span> {company.bankDetails.bankName}</p>
-              <p><span className="font-medium text-slate-600">A/C:</span> <span className="font-mono font-bold">{company.bankDetails.accountNumber}</span></p>
-              <p><span className="font-medium text-slate-600">IFSC:</span> <span className="font-mono">{company.bankDetails.ifsc}</span></p>
-              <p><span className="font-medium text-slate-600">UPI ID:</span> <span className="text-indigo-600 font-semibold">{company.bankDetails.upiId}</span></p>
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-4">
+            <div className="space-y-1.5 text-xs text-slate-800 dark:text-slate-200 flex-1">
+              <p className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                Bank & UPI Payment Details
+              </p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Bank Name:</span> <span className="font-extrabold text-slate-900 dark:text-white">{company.bankDetails?.bankName || 'HDFC Bank'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Branch:</span> <span>{company.bankDetails?.branch || 'Vijay talkies compound neemuch 458441'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Name:</span> <span className="font-extrabold uppercase text-slate-900 dark:text-white">{company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Number:</span> <span className="font-mono font-black text-slate-900 dark:text-white tracking-wider">{company.bankDetails?.accountNumber || '50200098211151'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">IFSC Code:</span> <span className="font-mono font-black text-slate-900 dark:text-white">{company.bankDetails?.ifsc || 'HDFC0000624'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">UPI ID:</span> <span className="text-indigo-600 dark:text-indigo-400 font-mono font-black">{company.bankDetails?.upiId || '7024537491@ybl'}</span></p>
             </div>
-            <UpiQrCode
-              upiId={company.bankDetails.upiId}
-              accountName={company.bankDetails.accountName}
-              amount={invoice.finalAmount}
-              invoiceNumber={invoice.invoiceNumber}
-              size={85}
-            />
+            <div className="shrink-0">
+              <UpiQrCode
+                upiId={company.bankDetails?.upiId || '7024537491@ybl'}
+                accountName={company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}
+                amount={invoice.finalAmount}
+                invoiceNumber={invoice.invoiceNumber}
+                size={85}
+              />
+            </div>
           </div>
         </div>
 

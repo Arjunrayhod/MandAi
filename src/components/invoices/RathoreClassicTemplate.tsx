@@ -338,25 +338,43 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
 
           {/* Bank Details & QR */}
           <div className="border-b border-black">
-            <div className="bg-[#f0f9ff] text-center font-bold py-1 border-b border-black text-[11px]">
-              Bank Details
+            <div className="bg-[#f0f9ff] text-center font-bold py-1 border-b border-black text-[11px] uppercase tracking-wide">
+              Bank Details & Online Payment
             </div>
-            <div className="p-3 grid grid-cols-3 gap-3 items-center">
-              <div className="col-span-2 space-y-1 text-[10.5px]">
-                <p><span className="font-semibold text-black">Name :</span> {company.bankDetails?.bankName || 'HDFC Bank'}</p>
-                <p><span className="font-semibold text-black">Branch :</span> {company.bankDetails?.branch || 'Vijay talkies compound neemuch'}</p>
-                <p><span className="font-semibold text-black">Acc. Name :</span> <span className="font-bold">{company.bankDetails?.accountName || company.name}</span></p>
-                <p><span className="font-semibold text-black">Acc. Number :</span> <span className="font-bold font-mono text-black">{company.bankDetails?.accountNumber || '50200098211151'}</span></p>
-                <p><span className="font-semibold text-black">IFSC :</span> <span className="font-mono font-bold text-black">{company.bankDetails?.ifsc || 'HDFC0000624'}</span></p>
-                <p><span className="font-semibold text-black">UPI ID :</span> <span className="text-blue-700 font-bold font-mono">{company.bankDetails?.upiId || '9340829951@hdfcbank'}</span></p>
+            <div className="p-3 flex items-center justify-between gap-4">
+              <div className="flex-1 space-y-1.5 text-[11px] text-gray-900 leading-tight">
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">Bank Name :</span>
+                  <span className="font-extrabold text-black text-[11.5px]">{company.bankDetails?.bankName || 'HDFC Bank'}</span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">Branch :</span>
+                  <span className="font-semibold text-gray-900">{company.bankDetails?.branch || 'Vijay talkies compound neemuch 458441'}</span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">Acc. Name :</span>
+                  <span className="font-extrabold text-black uppercase">{company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}</span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">Acc. Number :</span>
+                  <span className="font-black font-mono text-black text-xs tracking-wider">{company.bankDetails?.accountNumber || '50200098211151'}</span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">IFSC :</span>
+                  <span className="font-mono font-black text-black">{company.bankDetails?.ifsc || 'HDFC0000624'}</span>
+                </div>
+                <div className="flex items-baseline">
+                  <span className="font-bold text-black w-24 shrink-0">UPI ID :</span>
+                  <span className="text-indigo-800 font-mono font-black text-[11.5px]">{company.bankDetails?.upiId || '7024537491@ybl'}</span>
+                </div>
               </div>
-              <div className="col-span-1 flex justify-center">
+              <div className="shrink-0 flex justify-center">
                 <UpiQrCode
-                  upiId={company.bankDetails?.upiId || '9340829951@hdfcbank'}
-                  accountName={company.bankDetails?.accountName || company.name}
+                  upiId={company.bankDetails?.upiId || '7024537491@ybl'}
+                  accountName={company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}
                   amount={invoice.finalAmount}
                   invoiceNumber={invoice.invoiceNumber}
-                  size={80}
+                  size={85}
                 />
               </div>
             </div>

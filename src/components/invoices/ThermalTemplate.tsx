@@ -88,13 +88,23 @@ export const ThermalTemplate: React.FC<{ invoice: Invoice; company: CompanyProfi
         </div>
       </div>
 
-      <div className="my-3 flex flex-col items-center justify-center">
+      {/* Bank & UPI Details */}
+      <div className="my-2 border border-black p-2 text-[10px] space-y-1">
+        <p className="font-bold text-center border-b border-black pb-0.5 uppercase tracking-wide">Bank Details</p>
+        <p><span className="font-bold">Bank:</span> {company.bankDetails?.bankName || 'HDFC Bank'}</p>
+        <p><span className="font-bold">Branch:</span> {company.bankDetails?.branch || 'Vijay talkies compound neemuch 458441'}</p>
+        <p><span className="font-bold">A/C:</span> <span className="font-bold font-mono">{company.bankDetails?.accountNumber || '50200098211151'}</span></p>
+        <p><span className="font-bold">IFSC:</span> <span className="font-bold font-mono">{company.bankDetails?.ifsc || 'HDFC0000624'}</span></p>
+        <p><span className="font-bold">UPI ID:</span> <span className="font-bold font-mono">{company.bankDetails?.upiId || '7024537491@ybl'}</span></p>
+      </div>
+
+      <div className="my-2 flex flex-col items-center justify-center">
         <UpiQrCode
-          upiId={company.bankDetails.upiId}
-          accountName={company.bankDetails.accountName}
+          upiId={company.bankDetails?.upiId || '7024537491@ybl'}
+          accountName={company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}
           amount={invoice.finalAmount}
           invoiceNumber={invoice.invoiceNumber}
-          size={70}
+          size={75}
         />
       </div>
 

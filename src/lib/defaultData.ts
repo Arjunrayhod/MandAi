@@ -1,4 +1,4 @@
-﻿import { CompanyProfile, Party, Product, Invoice, BankAccount, CashTransaction } from './types';
+import { CompanyProfile, Party, Product, Invoice, BankAccount, CashTransaction } from './types';
 
 export const DEFAULT_COMPANY: CompanyProfile = {
   id: 'comp-1',
@@ -27,10 +27,10 @@ export const DEFAULT_COMPANY: CompanyProfile = {
   bankDetails: {
     bankName: 'HDFC Bank',
     branch: 'Vijay talkies compound neemuch 458441',
-    accountName: 'RATHORE TRADING COMPANY',
+    accountName: 'PRO RATHORE TRADING COMPANY',
     accountNumber: '50200098211151',
     ifsc: 'HDFC0000624',
-    upiId: '9340829951@hdfcbank',
+    upiId: '7024537491@ybl',
   },
   businessType: 'mandi_vyapar',
   invoiceTemplate: 'classic_rathore',
@@ -303,11 +303,11 @@ export const DEFAULT_BANK_ACCOUNTS: BankAccount[] = [
   {
     id: 'bank-1',
     bankName: 'HDFC Bank',
-    accountName: 'RATHORE TRADING COMPANY',
+    accountName: 'PRO RATHORE TRADING COMPANY',
     accountNumber: '50200098211151',
     ifsc: 'HDFC0000624',
     branch: 'Vijay talkies compound neemuch 458441',
-    upiId: '9340829951@hdfcbank',
+    upiId: '7024537491@ybl',
     openingBalance: 350000.00,
     currentBalance: 785400.00,
     isDefault: true,
