@@ -9,7 +9,7 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
   const party = invoice.party;
   const isInterState = invoice.isInterState;
   const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
-  const docMeta = getDocumentMeta(invoice.docType, 'en');
+  const docMeta = getDocumentMeta(invoice.docType, 'en', invoice.invoiceNumber);
   const activeBank = invoice.bankDetails || company.bankDetails;
 
   return (

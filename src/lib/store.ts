@@ -102,6 +102,22 @@ const getInitialState = () => {
             return b;
           });
         }
+        if (Array.isArray(parsed.invoices)) {
+          parsed.invoices = parsed.invoices.map((inv: any) => {
+            let dt = inv.docType;
+            if (!dt) {
+              const num = String(inv.invoiceNumber || '').toUpperCase().trim();
+              if (num.startsWith('DC-') || num.includes('CHALLAN')) dt = 'delivery_challan';
+              else if (num.startsWith('EST-') || num.includes('EST') || num.includes('QUOT')) dt = 'quotation_estimate';
+              else if (num.startsWith('CN-') || num.includes('CREDIT')) dt = 'credit_note';
+              else dt = 'tax_invoice';
+            }
+            return {
+              ...inv,
+              docType: dt,
+            };
+          });
+        }
         return parsed;
       } catch (e) {
         console.error('Failed to parse saved state', e);

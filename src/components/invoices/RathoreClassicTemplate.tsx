@@ -30,7 +30,7 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
   const isInterState = invoice.isInterState;
   const totalInWordsText = invoice.totalInWords || numberToIndianWords(invoice.finalAmount);
   const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
-  const docMeta = getDocumentMeta(invoice.docType, 'en');
+  const docMeta = getDocumentMeta(invoice.docType, 'en', invoice.invoiceNumber);
   const activeBank = invoice.bankDetails || company.bankDetails;
 
   return (

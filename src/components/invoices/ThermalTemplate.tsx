@@ -6,7 +6,7 @@ import { formatIndianCurrency, getDocumentMeta } from '@/lib/gstUtils';
 import { UpiQrCode } from './UpiQrCode';
 
 export const ThermalTemplate: React.FC<{ invoice: Invoice; company: CompanyProfile }> = ({ invoice, company }) => {
-  const docMeta = getDocumentMeta(invoice.docType, 'en');
+  const docMeta = getDocumentMeta(invoice.docType, 'en', invoice.invoiceNumber);
   const activeBank = invoice.bankDetails || company.bankDetails;
 
   return (

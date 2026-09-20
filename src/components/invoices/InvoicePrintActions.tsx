@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Invoice, CompanyProfile } from '@/lib/types';
-import { generateWhatsAppReminder, INVOICE_FONTS } from '@/lib/gstUtils';
+import { Invoice, CompanyProfile, DocumentType } from '@/lib/types';
+import { generateWhatsAppReminder, INVOICE_FONTS, resolveDocType } from '@/lib/gstUtils';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/translations';
-import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft, Type, Landmark } from 'lucide-react';
+import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft, Type, Landmark, FileCheck2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -29,6 +29,25 @@ export const InvoicePrintActions: React.FC<Props> = ({
   const [paySuccess, setPaySuccess] = useState(false);
 
   const activeBank = invoice.bankDetails || company.bankDetails;
+  const currentDocType = resolveDocType(invoice.docType, invoice.invoiceNumber);
+
+  const handleDocTypeChange = (newType: DocumentType) => {
+    let newNumber = invoice.invoiceNumber;
+    if (newType === 'delivery_challan' && !newNumber.startsWith('DC-')) {
+      newNumber = `DC-${newNumber.replace(/^(EST-|CN-|#)/, '')}`;
+    } else if (newType === 'quotation_estimate' && !newNumber.startsWith('EST-')) {
+      newNumber = `EST-${newNumber.replace(/^(DC-|CN-|#)/, '')}`;
+    } else if (newType === 'credit_note' && !newNumber.startsWith('CN-')) {
+      newNumber = `CN-${newNumber.replace(/^(DC-|EST-|#)/, '')}`;
+    } else if (newType === 'tax_invoice' && (newNumber.startsWith('DC-') || newNumber.startsWith('EST-') || newNumber.startsWith('CN-'))) {
+      newNumber = newNumber.replace(/^(DC-|EST-|CN-)/, '');
+    }
+
+    updateInvoice(invoice.id, {
+      docType: newType,
+      invoiceNumber: newNumber,
+    });
+  };
 
   const handlePrint = () => {
     window.print();
@@ -81,6 +100,24 @@ export const InvoicePrintActions: React.FC<Props> = ({
             <ArrowLeft className="w-4 h-4" />
             {getTranslation('back_to_invoices_btn', language)}
           </Link>
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+          {/* Document Type Switcher */}
+          <div className="flex items-center gap-2">
+            <FileCheck2 className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="text-xs font-medium text-slate-500">{language === 'hi' ? 'दस्तावेज़ प्रकार' : 'Doc Type'}</span>
+            <select
+              value={currentDocType}
+              onChange={(e) => handleDocTypeChange(e.target.value as DocumentType)}
+              className="text-xs font-bold bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-slate-600 rounded-lg px-2.5 py-1.5 focus:outline-indigo-500"
+            >
+              <option value="tax_invoice">🧾 टैक्स बिल (Tax Invoice)</option>
+              <option value="delivery_challan">📦 डिलीवरी चालान (Delivery Challan)</option>
+              <option value="quotation_estimate">📄 कोटेशन (Quotation / Estimate)</option>
+              <option value="credit_note">🔄 क्रेडिट नोट (Credit Note)</option>
+            </select>
+          </div>
+          
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
           
           {/* Template Selector */}

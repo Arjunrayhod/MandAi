@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { getTranslation, t } from '@/lib/translations';
-import { formatIndianCurrency, generateWhatsAppReminder } from '@/lib/gstUtils';
+import { formatIndianCurrency, generateWhatsAppReminder, resolveDocType } from '@/lib/gstUtils';
 import { 
   Receipt, 
   Plus, 
@@ -55,10 +55,11 @@ export default function InvoicesListPage() {
         ? inv.status === 'paid' || inv.balanceAmount <= 0
         : inv.balanceAmount > 0;
 
+    const invDocType = resolveDocType(inv.docType, inv.invoiceNumber);
     const matchesDocType =
       docTypeFilter === 'all'
         ? true
-        : (inv.docType || 'tax_invoice') === docTypeFilter;
+        : invDocType === docTypeFilter;
 
     return matchesSearch && matchesStatus && matchesDocType;
   });
@@ -223,10 +224,10 @@ export default function InvoicesListPage() {
           </span>
           {[
             { id: 'all', label: language === 'hi' ? 'सभी प्रकार (All)' : 'All Documents', count: invoices.length },
-            { id: 'tax_invoice', label: language === 'hi' ? '🧾 टैक्स बिल (Invoices)' : 'Tax Invoices', count: invoices.filter(i => (i.docType || 'tax_invoice') === 'tax_invoice').length },
-            { id: 'quotation_estimate', label: language === 'hi' ? '📄 कोटेशन (Estimates)' : 'Quotations', count: invoices.filter(i => i.docType === 'quotation_estimate').length },
-            { id: 'delivery_challan', label: language === 'hi' ? '📦 चालान (Challans)' : 'Delivery Challans', count: invoices.filter(i => i.docType === 'delivery_challan').length },
-            { id: 'credit_note', label: language === 'hi' ? '🔄 क्रेडिट नोट (Credit Notes)' : 'Credit Notes', count: invoices.filter(i => i.docType === 'credit_note').length },
+            { id: 'tax_invoice', label: language === 'hi' ? '🧾 टैक्स बिल (Invoices)' : 'Tax Invoices', count: invoices.filter(i => resolveDocType(i.docType, i.invoiceNumber) === 'tax_invoice').length },
+            { id: 'quotation_estimate', label: language === 'hi' ? '📄 कोटेशन (Estimates)' : 'Quotations', count: invoices.filter(i => resolveDocType(i.docType, i.invoiceNumber) === 'quotation_estimate').length },
+            { id: 'delivery_challan', label: language === 'hi' ? '📦 चालान (Challans)' : 'Delivery Challans', count: invoices.filter(i => resolveDocType(i.docType, i.invoiceNumber) === 'delivery_challan').length },
+            { id: 'credit_note', label: language === 'hi' ? '🔄 क्रेडिट नोट (Credit Notes)' : 'Credit Notes', count: invoices.filter(i => resolveDocType(i.docType, i.invoiceNumber) === 'credit_note').length },
           ].map((dt) => (
             <button
               key={dt.id}
@@ -316,6 +317,8 @@ export default function InvoicesListPage() {
                   const paidPercent = inv.finalAmount > 0 ? Math.round(((inv.paidAmount || 0) / inv.finalAmount) * 100) : 0;
                   const isCustomPrefix = inv.invoiceNumber.startsWith('EST-') || inv.invoiceNumber.startsWith('DC-') || inv.invoiceNumber.startsWith('CN-') || inv.invoiceNumber.startsWith('#');
 
+                  const effectiveDocType = resolveDocType(inv.docType, inv.invoiceNumber);
+
                   return (
                     <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition">
                       <td className="py-3.5 px-4 font-mono">
@@ -323,19 +326,19 @@ export default function InvoicesListPage() {
                           {isCustomPrefix ? inv.invoiceNumber : `#${inv.invoiceNumber}`}
                         </span>
                         <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 ${
-                          inv.docType === 'quotation_estimate'
+                          effectiveDocType === 'quotation_estimate'
                             ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                            : inv.docType === 'delivery_challan'
+                            : effectiveDocType === 'delivery_challan'
                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
-                            : inv.docType === 'credit_note'
+                            : effectiveDocType === 'credit_note'
                             ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
                             : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                         }`}>
-                          {inv.docType === 'quotation_estimate'
+                          {effectiveDocType === 'quotation_estimate'
                             ? (language === 'hi' ? 'कोटेशन / एस्टीमेट' : 'Estimate')
-                            : inv.docType === 'delivery_challan'
+                            : effectiveDocType === 'delivery_challan'
                             ? (language === 'hi' ? 'डिलीवरी चालान' : 'Challan')
-                            : inv.docType === 'credit_note'
+                            : effectiveDocType === 'credit_note'
                             ? (language === 'hi' ? 'क्रेडिट नोट' : 'Credit Note')
                             : (language === 'hi' ? 'टैक्स बिल' : 'Tax Invoice')}
                         </span>

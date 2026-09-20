@@ -231,8 +231,24 @@ export interface DocumentMeta {
   summaryTitle: string;
 }
 
-export function getDocumentMeta(docType: DocumentType = 'tax_invoice', language: string = 'hi'): DocumentMeta {
-  switch (docType) {
+export function resolveDocType(docType?: DocumentType, invoiceNumber?: string): DocumentType {
+  if (docType) return docType;
+  if (invoiceNumber) {
+    const num = String(invoiceNumber).toUpperCase().trim();
+    if (num.startsWith('DC-') || num.startsWith('CHALLAN') || num.startsWith('DC')) return 'delivery_challan';
+    if (num.startsWith('EST-') || num.startsWith('QUOT') || num.startsWith('EST')) return 'quotation_estimate';
+    if (num.startsWith('CN-') || num.startsWith('CR-') || num.startsWith('CREDIT')) return 'credit_note';
+  }
+  return 'tax_invoice';
+}
+
+export function getDocumentMeta(
+  docType?: DocumentType, 
+  language: string = 'hi',
+  invoiceNumber?: string
+): DocumentMeta {
+  const resolved = resolveDocType(docType, invoiceNumber);
+  switch (resolved) {
     case 'quotation_estimate':
       return {
         title: language === 'hi' ? 'अनुमान पत्र / कोटेशन' : 'ESTIMATE / QUOTATION',
