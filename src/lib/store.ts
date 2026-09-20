@@ -57,6 +57,8 @@ interface AppState {
   addTransaction: (tx: Omit<CashTransaction, 'id' | 'createdAt'>) => void;
   addBankAccount: (acc: Omit<BankAccount, 'id'>) => void;
   updateBankAccount: (id: string, acc: Partial<BankAccount>) => void;
+  deleteBankAccount: (id: string) => void;
+  setDefaultBankAccount: (id: string) => void;
 
   // Mandi Sauda Parcha
   addSaudaSlip: (slip: Omit<MandiSaudaSlip, 'id'>) => MandiSaudaSlip;
@@ -448,6 +450,75 @@ export const useAppStore = create<AppState>((set, get) => ({
       const next = { ...state, bankAccounts: updated };
       if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return { bankAccounts: updated };
+    });
+  },
+
+  deleteBankAccount: (id) => {
+    set((state) => {
+      const targetAcc = state.bankAccounts.find((b) => b.id === id);
+      let updated = state.bankAccounts.filter((b) => b.id !== id);
+
+      // If the deleted account was default and other accounts exist, make the first one default
+      let updatedCompany = state.company;
+      if (targetAcc?.isDefault && updated.length > 0) {
+        updated = updated.map((acc, idx) => (idx === 0 ? { ...acc, isDefault: true } : acc));
+        const newPrimary = updated[0];
+        updatedCompany = {
+          ...state.company,
+          bankDetails: {
+            bankName: newPrimary.bankName,
+            accountName: newPrimary.accountName,
+            accountNumber: newPrimary.accountNumber,
+            ifsc: newPrimary.ifsc,
+            branch: newPrimary.branch || '',
+            upiId: newPrimary.upiId || '',
+          },
+        };
+      } else if (updated.length === 0) {
+        updatedCompany = {
+          ...state.company,
+          bankDetails: {
+            bankName: '',
+            accountName: '',
+            accountNumber: '',
+            ifsc: '',
+            branch: '',
+            upiId: '',
+          },
+        };
+      }
+
+      const next = { ...state, bankAccounts: updated, company: updatedCompany };
+      if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return { bankAccounts: updated, company: updatedCompany };
+    });
+  },
+
+  setDefaultBankAccount: (id) => {
+    set((state) => {
+      const targetAcc = state.bankAccounts.find((b) => b.id === id);
+      if (!targetAcc) return state;
+
+      const updated = state.bankAccounts.map((b) => ({
+        ...b,
+        isDefault: b.id === id,
+      }));
+
+      const updatedCompany = {
+        ...state.company,
+        bankDetails: {
+          bankName: targetAcc.bankName,
+          accountName: targetAcc.accountName,
+          accountNumber: targetAcc.accountNumber,
+          ifsc: targetAcc.ifsc,
+          branch: targetAcc.branch || '',
+          upiId: targetAcc.upiId || '',
+        },
+      };
+
+      const next = { ...state, bankAccounts: updated, company: updatedCompany };
+      if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return { bankAccounts: updated, company: updatedCompany };
     });
   },
 

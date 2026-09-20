@@ -15,14 +15,28 @@ import {
   Receipt, 
   Calendar,
   X,
-  CreditCard
+  CreditCard,
+  Trash2,
+  Star,
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function MoneyPage() {
-  const { cashInHand, bankAccounts, transactions, addTransaction, addBankAccount, language } = useAppStore();
+  const { 
+    cashInHand, 
+    bankAccounts, 
+    transactions, 
+    addTransaction, 
+    addBankAccount, 
+    deleteBankAccount,
+    setDefaultBankAccount,
+    language 
+  } = useAppStore();
 
   const [showTxModal, setShowTxModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
+  const [deletingBankId, setDeletingBankId] = useState<string | null>(null);
 
   // Tx Form
   const [txType, setTxType] = useState<'income' | 'expense' | 'bank_deposit' | 'bank_withdrawal'>('expense');
@@ -171,40 +185,91 @@ export default function MoneyPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {bankAccounts.map((acc) => (
-            <div
-              key={acc.id}
-              className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-md border border-slate-700 flex flex-col justify-between"
+        {bankAccounts.length === 0 ? (
+          <div className="bg-slate-50 dark:bg-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 text-center">
+            <Building2 className="w-12 h-12 text-slate-400 mx-auto mb-3 opacity-60" />
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">
+              {language === 'hi' ? 'कोई बैंक खाता नहीं है' : 'No Bank Accounts Added'}
+            </h4>
+            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              {language === 'hi' 
+                ? 'बिल पर बैंक विवरण व क्यूआर कोड प्रिंट करने के लिए नया बैंक खाता जोड़ें।'
+                : 'Add a bank account to enable bank transfers and UPI QR printing on invoices.'}
+            </p>
+            <button
+              onClick={() => setShowBankModal(true)}
+              className="mt-4 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition"
             >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-sky-400">{acc.bankName}</span>
-                  {acc.isDefault && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      {language === 'hi' ? 'Primary (बिल पर प्रिंट)' : 'Primary Account'}
+              <Plus className="w-4 h-4" />
+              {t('btn_add_bank', language)}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {bankAccounts.map((acc) => (
+              <div
+                key={acc.id}
+                className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-md border border-slate-700 flex flex-col justify-between relative group"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-sky-400 flex items-center gap-1.5">
+                      <Building2 className="w-4 h-4 text-sky-400" />
+                      {acc.bankName}
                     </span>
+
+                    <div className="flex items-center gap-1.5">
+                      {acc.isDefault ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          {language === 'hi' ? 'Primary (बिल प्रिंट)' : 'Primary'}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setDefaultBankAccount(acc.id)}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/30 transition"
+                          title="इस खाते को बिल पर प्रिंट करने हेतु Primary बनाएं"
+                        >
+                          {language === 'hi' ? 'Primary बनाएं' : 'Make Primary'}
+                        </button>
+                      )}
+
+                      {/* Delete Bank Account Button */}
+                      <button
+                        onClick={() => setDeletingBankId(acc.id)}
+                        className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/30 text-rose-300 hover:text-rose-100 border border-rose-500/20 transition"
+                        title={language === 'hi' ? 'यह बैंक खाता हटाएं (Remove Account)' : 'Remove Bank Account'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 font-medium mt-2">{acc.accountName}</p>
+                  <p className="text-lg font-mono font-bold tracking-wider mt-1 text-white">
+                    {acc.accountNumber}
+                  </p>
+                  <div className="text-[11px] text-slate-400 mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                    <span>IFSC: <span className="text-white font-mono font-semibold">{acc.ifsc}</span></span>
+                    {acc.upiId && <span>UPI: <span className="text-sky-300 font-medium">{acc.upiId}</span></span>}
+                  </div>
+                  {acc.branch && (
+                    <p className="text-[10px] text-slate-400 mt-1 truncate">
+                      📍 {acc.branch}
+                    </p>
                   )}
                 </div>
-                <p className="text-xs text-slate-300 font-medium mt-1">{acc.accountName}</p>
-                <p className="text-lg font-mono font-bold tracking-wider mt-2 text-white">
-                  {acc.accountNumber}
-                </p>
-                <div className="text-[11px] text-slate-400 mt-1 flex gap-4">
-                  <span>IFSC: <span className="text-white font-mono">{acc.ifsc}</span></span>
-                  <span>UPI: <span className="text-sky-300">{acc.upiId}</span></span>
+
+                <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">{t('closing_due', language)}:</span>
+                  <span className="text-lg font-black text-white font-mono">
+                    {formatIndianCurrency(acc.currentBalance)}
+                  </span>
                 </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">{t('closing_due', language)}:</span>
-                <span className="text-lg font-black text-white font-mono">
-                  {formatIndianCurrency(acc.currentBalance)}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Transactions History */}
@@ -498,6 +563,64 @@ export default function MoneyPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Bank Confirmation Modal */}
+      {deletingBankId && (() => {
+        const targetBank = bankAccounts.find(b => b.id === deletingBankId);
+        if (!targetBank) return null;
+
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-150">
+              <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400 mb-4">
+                <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-full">
+                  <AlertTriangle className="w-6 h-6 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {language === 'hi' ? 'बैंक खाता हटाएं (Remove Bank Account)' : 'Remove Bank Account'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {language === 'hi' ? 'क्या आप इस बैंक खाते को हटाना चाहते हैं?' : 'Are you sure you want to delete this bank account?'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-700/50 p-3.5 rounded-xl border border-slate-200 dark:border-slate-600 mb-5">
+                <p className="text-sm font-bold text-slate-800 dark:text-white">{targetBank.bankName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-300 font-mono mt-0.5">A/C: {targetBank.accountNumber}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-300 font-mono">IFSC: {targetBank.ifsc}</p>
+                {targetBank.isDefault && (
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-2">
+                    ⚠️ {language === 'hi' ? 'नोट: यह खाता वर्तमान में बिल प्रिंट हेतु Primary खाता है।' : 'Note: This account is currently set as Primary for billing.'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeletingBankId(null)}
+                  className="w-1/2 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                >
+                  {t('cancel', language)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteBankAccount(deletingBankId);
+                    setDeletingBankId(null);
+                  }}
+                  className="w-1/2 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {language === 'hi' ? 'हाँ, खाता हटाएं' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

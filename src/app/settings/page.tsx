@@ -519,10 +519,44 @@ export default function SettingsPage() {
 
         {/* 3. Bank Details & UPI */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
-            <CreditCard className="w-4 h-4" />
-            3. {t('tab_bank_qr', language)}
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              3. {t('tab_bank_qr', language)}
+            </h3>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="/money"
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                {language === 'hi' ? 'रोकड़ व सभी बैंक खाते देखें →' : 'View All Bank Accounts →'}
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(language === 'hi' ? 'क्या आप बैंक विवरण हटाना / खाली करना चाहते हैं?' : 'Clear bank account details?')) {
+                    setFormData({
+                      ...formData,
+                      bankDetails: {
+                        bankName: '',
+                        accountName: '',
+                        accountNumber: '',
+                        ifsc: '',
+                        branch: '',
+                        upiId: '',
+                      },
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300 hover:bg-rose-100 transition"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {language === 'hi' ? 'बैंक विवरण हटाएं / खाली करें' : 'Clear Bank Details'}
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
