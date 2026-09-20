@@ -1,0 +1,35 @@
+﻿import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: "#eef2ff",
+          100: "#e0e7ff",
+          500: "#6366f1",
+          600: "#4f46e5",
+          700: "#4338ca",
+          800: "#3730a3",
+          900: "#312e81",
+        },
+        emerald: {
+          500: "#10b981",
+          600: "#059669",
+        },
+        brand: {
+          blue: "#0284c7",
+          dark: "#0f172a",
+        }
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
