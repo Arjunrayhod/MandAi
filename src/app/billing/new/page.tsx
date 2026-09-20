@@ -1,32 +1,34 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
-import { InvoiceItem, Party } from '@/lib/types';
+import { InvoiceItem, DocumentType } from '@/lib/types';
+import { getTranslation } from '@/lib/translations';
 import { INDIAN_STATES, formatIndianCurrency, numberToIndianWords } from '@/lib/gstUtils';
 import { 
   Receipt, 
   Plus, 
   Trash2, 
   ArrowLeft, 
-  Calculator, 
   Save, 
-  Check, 
   Truck, 
-  FileCheck,
-  Building,
-  Wheat
+  FileText,
+  Wheat,
+  FileCheck2,
+  PackageCheck,
+  RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const { company, parties, products, addInvoice } = useAppStore();
+  const { company, parties, products, addInvoice, language } = useAppStore();
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dueDefault = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
 
+  const [docType, setDocType] = useState<DocumentType>('tax_invoice');
   const [invoiceNumber, setInvoiceNumber] = useState<string>(String(company.invoiceNextNumber || 170));
   const [invoiceDate, setInvoiceDate] = useState<string>(todayStr);
   const [dueDate, setDueDate] = useState<string>(dueDefault);
@@ -36,8 +38,12 @@ export default function CreateInvoicePage() {
   const [placeOfSupply, setPlaceOfSupply] = useState<string>(`${parties[0]?.state || 'Madhya Pradesh'} ( ${parties[0]?.stateCode || '23'} )`);
   const [isInterState, setIsInterState] = useState<boolean>(false);
   
-  const [vehicleNo, setVehicleNo] = useState<string>('MP 44 GA ');
+  // GoGST Transport & E-Way fields
+  const [vehicleNo, setVehicleNo] = useState<string>('MP 44 GA 8819');
   const [biltyNo, setBiltyNo] = useState<string>('');
+  const [transporterName, setTransporterName] = useState<string>('Neemuch Roadways Carrier');
+  const [transporterId, setTransporterId] = useState<string>('');
+  const [distanceKm, setDistanceKm] = useState<number>(120);
   const [stationTo, setStationTo] = useState<string>('');
 
   // Items
@@ -69,7 +75,6 @@ export default function CreateInvoicePage() {
   const [otherChargesLabel, setOtherChargesLabel] = useState<string>('All other charges (कट्ट)');
   const [notes, setNotes] = useState<string>('');
 
-  // Handle party change
   const handlePartySelect = (partyId: string) => {
     setSelectedPartyId(partyId);
     const party = parties.find((p) => p.id === partyId);
@@ -157,7 +162,7 @@ export default function CreateInvoicePage() {
         sgstAmount: isInter ? 0 : (taxable * half) / 100,
         igstPercent: isInter ? totalGst : 0,
         igstAmount: isInter ? (taxable * totalGst) / 100 : 0,
-        total: taxable + (isInter ? (taxable * totalGst) / 100 : (taxable * totalGst) / 100),
+        total: taxable + (taxable * totalGst) / 100,
       };
     });
     setItems(updated);
@@ -208,6 +213,7 @@ export default function CreateInvoicePage() {
     const party = parties.find((p) => p.id === selectedPartyId) || parties[0];
 
     const newInvoice = addInvoice({
+      docType,
       invoiceNumber: invoiceNumber.trim(),
       invoiceDate,
       dueDate,
@@ -218,6 +224,9 @@ export default function CreateInvoicePage() {
       isInterState,
       vehicleNo,
       biltyNo,
+      transporterName,
+      transporterId,
+      distanceKm: Number(distanceKm || 0),
       stationTo,
       items,
       totalBags,
@@ -245,8 +254,8 @@ export default function CreateInvoicePage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-6xl mx-auto pb-12">
-      {/* Top Header */}
-      <div className="flex items-center justify-between">
+      {/* Top Header with GoGST Doc Type Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/billing"
@@ -257,10 +266,16 @@ export default function CreateInvoicePage() {
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Receipt className="w-6 h-6 text-indigo-600" />
-              नया मंडी टैक्स इनवॉइस (Create GST Bill)
+              {docType === 'tax_invoice'
+                ? 'नया GST टैक्स इनवॉइस (Tax Invoice)'
+                : docType === 'quotation_estimate'
+                ? 'कोटेशन / कच्चा बिल (Estimate / Quotation)'
+                : docType === 'delivery_challan'
+                ? 'डिलीवरी चालान (Delivery Challan)'
+                : 'क्रेडिट नोट / बिक्री वापसी (Credit Note)'}
             </h1>
             <p className="text-xs text-slate-500">
-              {company.name} • 1:1 सैंपल PDF जैसा पक्का बिल
+              {company.name} • GoGST & Rathore Trading Architecture
             </p>
           </div>
         </div>
@@ -270,8 +285,36 @@ export default function CreateInvoicePage() {
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition transform active:scale-95"
         >
           <Save className="w-4 h-4" />
-          बिल सुरक्षित करें व प्रिंट करें (Save & Print)
+          {getTranslation('save_and_print', language)}
         </button>
+      </div>
+
+      {/* GoGST Document Type Selector Bar */}
+      <div className="bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-wrap gap-2">
+        {[
+          { id: 'tax_invoice', label: 'टैक्स इनवॉइस (GST Tax Invoice)', icon: Receipt },
+          { id: 'quotation_estimate', label: 'कोटेशन / एस्टीमेट (Quotation)', icon: FileText },
+          { id: 'delivery_challan', label: 'डिलीवरी चालान (Delivery Challan)', icon: PackageCheck },
+          { id: 'credit_note', label: 'क्रेडिट नोट (Credit Note / Return)', icon: RotateCcw },
+        ].map((dt) => {
+          const Icon = dt.icon;
+          const isSelected = docType === dt.id;
+          return (
+            <button
+              key={dt.id}
+              type="button"
+              onClick={() => setDocType(dt.id as DocumentType)}
+              className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition ${
+                isSelected
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{dt.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Bill & Party Meta Grid */}
@@ -283,7 +326,7 @@ export default function CreateInvoicePage() {
           </h3>
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              बिल नंबर (Invoice No.)
+              {getTranslation('invoice_number', language)}
             </label>
             <input
               type="text"
@@ -297,7 +340,7 @@ export default function CreateInvoicePage() {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                तारीख (Invoice Date)
+                {getTranslation('invoice_date', language)}
               </label>
               <input
                 type="date"
@@ -309,7 +352,7 @@ export default function CreateInvoicePage() {
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                नियत तारीख (Due Date)
+                {getTranslation('due_date', language)}
               </label>
               <input
                 type="date"
@@ -329,7 +372,7 @@ export default function CreateInvoicePage() {
           </h3>
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              पार्टी चुनें (Select Party)
+              {getTranslation('select_party', language)}
             </label>
             <select
               value={selectedPartyId}
@@ -357,34 +400,49 @@ export default function CreateInvoicePage() {
           </div>
         </div>
 
-        {/* Transport & Mandi Vehicle */}
+        {/* GoGST Transport & E-Way Fields */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            3. गाड़ी व परिवहन (Transport Details)
+          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
+            <Truck className="w-4 h-4" />
+            3. E-Way बिल व गाड़ी परिवहन (Transport)
           </h3>
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-              गाड़ी नंबर (Vehicle / Truck No.)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. MP 44 GA 8819"
-              value={vehicleNo}
-              onChange={(e) => setVehicleNo(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 uppercase"
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                गाड़ी नं. (Vehicle)
+              </label>
+              <input
+                type="text"
+                placeholder="MP 44 GA 8819"
+                value={vehicleNo}
+                onChange={(e) => setVehicleNo(e.target.value)}
+                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2 uppercase font-bold"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                दूरी (Distance KM)
+              </label>
+              <input
+                type="number"
+                placeholder="120 Km"
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(Number(e.target.value))}
+                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                बिल्टी / GR नं.
+                ट्रांसपोर्टर का नाम
               </label>
               <input
                 type="text"
-                placeholder="GR-1234"
-                value={biltyNo}
-                onChange={(e) => setBiltyNo(e.target.value)}
+                placeholder="Transporter Name"
+                value={transporterName}
+                onChange={(e) => setTransporterName(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-2"
               />
             </div>
@@ -399,7 +457,7 @@ export default function CreateInvoicePage() {
                   setIsInterState(toggled);
                   recalcItems(items, toggled);
                 }}
-                className={`w-full py-2 px-2 text-[10px] font-bold rounded-xl border transition ${
+                className={`w-full py-2 px-1 text-[10px] font-bold rounded-xl border transition ${
                   isInterState
                     ? 'bg-purple-100 border-purple-300 text-purple-700'
                     : 'bg-emerald-100 border-emerald-300 text-emerald-700'
@@ -417,7 +475,7 @@ export default function CreateInvoicePage() {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Wheat className="w-4 h-4 text-indigo-600" />
-            जिंस व माल विवरण (Mandi Commodities & Goods)
+            {getTranslation('item_name', language)} & Commodities
           </h3>
           <button
             type="button"
@@ -564,7 +622,7 @@ export default function CreateInvoicePage() {
         {/* Left 7 Cols: Extra Mandi Charges & Notes */}
         <div className="md:col-span-7 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
           <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            मंडी भाड़ा व अतिरिक्त खर्च (Mandi Charges & Katoti)
+            {getTranslation('transport_charges', language)} & {getTranslation('katoti_other_charges', language)}
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
@@ -630,7 +688,7 @@ export default function CreateInvoicePage() {
 
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex justify-between">
-                <span>कुल माल मूल्य (Taxable Subtotal):</span>
+                <span>{getTranslation('taxable_subtotal', language)}:</span>
                 <span className="font-mono font-bold text-white">₹{taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-slate-400">
@@ -673,7 +731,7 @@ export default function CreateInvoicePage() {
 
           <div className="pt-4 border-t border-slate-700">
             <div className="flex justify-between items-baseline mb-2">
-              <span className="text-sm font-bold text-indigo-300">अंतिम देय राशि:</span>
+              <span className="text-sm font-bold text-indigo-300">{getTranslation('grand_total', language)}:</span>
               <span className="text-2xl font-black text-white font-mono">
                 {formatIndianCurrency(finalAmount)}
               </span>

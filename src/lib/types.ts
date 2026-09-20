@@ -12,7 +12,16 @@ export type InvoiceTemplateType =
   | 'classic_rathore' 
   | 'modern_mandi' 
   | 'minimal_black' 
-  | 'thermal_pos';
+  | 'thermal_pos'
+  | 'gogst_corporate';
+
+export type DocumentType = 
+  | 'tax_invoice' 
+  | 'quotation_estimate' 
+  | 'delivery_challan' 
+  | 'credit_note' 
+  | 'debit_note' 
+  | 'sauda_slip';
 
 export interface BankDetails {
   bankName: string;
@@ -78,20 +87,21 @@ export interface Party {
 
 export interface Product {
   id: string;
-  name: string; // e.g. 'Musakadana', 'Isabgol', 'Ashwagandha'
-  hindiName?: string; // e.g. 'मुसकादाना'
+  name: string;
+  hindiName?: string;
   sku: string;
-  hsnSac: string; // e.g. '12119011'
-  category: string; // e.g. 'Herbs / Krishi Upaj', 'Grains', 'Oilseeds', 'Spices'
+  barcode?: string;
+  hsnSac: string;
+  category: string;
   unit: 'Kg' | 'Quintal' | 'Bags / Bori' | 'Metric Ton' | 'Pcs';
   purchasePrice: number;
   sellingPrice: number;
-  gstRate: number; // e.g. 5 for 5% (2.5% CGST + 2.5% SGST)
-  currentStock: number; // in unit
-  bagCount?: number; // total bags in godown
-  bagWeightKg?: number; // avg kg per bag e.g. 50kg
+  gstRate: number;
+  currentStock: number;
+  bagCount?: number;
+  bagWeightKg?: number;
   minStockLevel: number;
-  qualityGrade?: string; // e.g. 'FAQ (Fair Average Quality)', 'Special Bold', 'Standard'
+  qualityGrade?: string;
   createdAt: string;
 }
 
@@ -100,11 +110,11 @@ export interface InvoiceItem {
   productId?: string;
   name: string;
   hsnSac: string;
-  qty: number; // Quantity in primary unit (e.g. 2,200.00)
-  unit: string; // e.g. 'Kg', 'Quintal', 'Bori'
-  bags?: number; // e.g. 44 bags of 50kg = 2200 kg
-  rate: number; // Rate per unit (e.g. 215.00)
-  ratePer?: string; // 'Per Kg', 'Per Quintal', 'Per Bag'
+  qty: number;
+  unit: string;
+  bags?: number;
+  rate: number;
+  ratePer?: string;
   discountPercent?: number;
   discountAmount?: number;
   taxableValue: number;
@@ -119,25 +129,30 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string; // e.g. '169'
-  invoiceDate: string; // e.g. '2026-09-16'
-  dueDate: string; // e.g. '2026-10-01'
+  docType?: DocumentType; // 'tax_invoice' | 'quotation_estimate' | 'delivery_challan' | 'credit_note'
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
   partyId: string;
   party: Party;
   billingAddress: string;
   dispatchAddress?: string;
-  placeOfSupply: string; // e.g. 'Madhya Pradesh ( 23 )'
+  placeOfSupply: string;
   isInterState: boolean;
-  vehicleNo?: string; // e.g. 'MP 44 GA 8819'
-  biltyNo?: string; // e.g. 'BL-9821'
-  stationTo?: string; // e.g. 'Indore / Mumbai'
+  // GoGST E-Way & Transport fields
+  vehicleNo?: string;
+  biltyNo?: string;
+  transporterName?: string;
+  transporterId?: string;
+  distanceKm?: number;
+  stationTo?: string;
   items: InvoiceItem[];
   totalBags?: number;
   totalQty: number;
   taxableAmount: number;
-  transportCharges: number; // e.g. 500.00
-  otherCharges: number; // e.g. 1760.00
-  otherChargesLabel: string; // 'All other charges (कट्ट)'
+  transportCharges: number;
+  otherCharges: number;
+  otherChargesLabel: string;
   mandiTaxCharges?: number;
   hammaliCharges?: number;
   totalTaxableAmount: number;
@@ -146,7 +161,7 @@ export interface Invoice {
   totalIgst: number;
   totalTax: number;
   roundOff: number;
-  finalAmount: number; // e.g. 4,98,910.00
+  finalAmount: number;
   totalInWords: string;
   paidAmount: number;
   balanceAmount: number;
@@ -190,7 +205,7 @@ export interface CashTransaction {
   type: 'cash_in' | 'cash_out' | 'expense' | 'income' | 'bank_deposit' | 'bank_withdrawal';
   amount: number;
   date: string;
-  category: string; // 'Mandi Hammali', 'Freight/Transport', 'Bardan (Bags)', 'Tea/Snacks', 'Office', 'Labour'
+  category: string;
   description: string;
   partyId?: string;
   partyName?: string;
