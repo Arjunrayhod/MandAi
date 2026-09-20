@@ -15,6 +15,9 @@ import {
   Truck, 
   FileText,
   Wheat,
+  UserPlus,
+  X,
+  CheckCircle,
   FileCheck2,
   PackageCheck,
   RotateCcw
@@ -23,7 +26,7 @@ import Link from 'next/link';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const { company, parties, products, addInvoice, language } = useAppStore();
+  const { company, parties, products, addInvoice, addParty, addProduct, language } = useAppStore();
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dueDefault = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
@@ -45,6 +48,42 @@ export default function CreateInvoicePage() {
   const [transporterId, setTransporterId] = useState<string>('');
   const [distanceKm, setDistanceKm] = useState<number>(120);
   const [stationTo, setStationTo] = useState<string>('');
+
+  // Quick Add Party Modal State
+  const [showQuickPartyModal, setShowQuickPartyModal] = useState(false);
+  const [partyFormData, setPartyFormData] = useState({
+    businessName: '',
+    name: '',
+    type: 'customer' as 'customer' | 'supplier' | 'farmer' | 'both',
+    phone: '',
+    email: '',
+    mandiShopNo: '',
+    city: company.city || 'Neemuch',
+    state: company.state || 'Madhya Pradesh',
+    stateCode: company.stateCode || '23',
+    gstin: '',
+    pan: '',
+    billingAddress: '',
+    openingBalance: 0,
+    creditLimit: 500000,
+    paymentTermsDays: 15,
+  });
+
+  // Quick Add Product / Commodity Modal State
+  const [showQuickProdModal, setShowQuickProdModal] = useState(false);
+  const [prodFormData, setProdFormData] = useState({
+    name: '',
+    hindiName: '',
+    category: 'Mandi Crop',
+    hsnSac: '12119011',
+    unit: 'Kg',
+    sellingPrice: 200,
+    purchasePrice: 190,
+    gstRate: 5,
+    currentStock: 1000,
+    bagCount: 20,
+    mandiBagWeightKg: 50,
+  });
 
   // Items
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -69,10 +108,13 @@ export default function CreateInvoicePage() {
     }
   ]);
 
-  // Extra charges
+  // Extra Mandi charges
   const [transportCharges, setTransportCharges] = useState<number>(500);
-  const [otherCharges, setOtherCharges] = useState<number>(1760);
-  const [otherChargesLabel, setOtherChargesLabel] = useState<string>('All other charges (कट्ट)');
+  const [hammaliCharges, setHammaliCharges] = useState<number>(0);
+  const [tulaiCharges, setTulaiCharges] = useState<number>(0);
+  const [katotiCharges, setKatotiCharges] = useState<number>(1760);
+  const [otherCharges, setOtherCharges] = useState<number>(0);
+  const [otherChargesLabel, setOtherChargesLabel] = useState<string>('Custom Surcharge');
   const [notes, setNotes] = useState<string>('');
 
   const handlePartySelect = (partyId: string) => {
@@ -85,6 +127,85 @@ export default function CreateInvoicePage() {
       setIsInterState(isInter);
       recalcItems(items, isInter);
     }
+  };
+
+  const handleCreateQuickParty = (e: React.FormEvent) => {
+    e.preventDefault();
+    const created = addParty({
+      businessName: partyFormData.businessName.trim() || partyFormData.name.trim(),
+      name: partyFormData.name.trim() || partyFormData.businessName.trim(),
+      type: partyFormData.type,
+      phone: partyFormData.phone.trim(),
+      email: partyFormData.email.trim(),
+      mandiShopNo: partyFormData.mandiShopNo.trim(),
+      city: partyFormData.city.trim(),
+      state: partyFormData.state,
+      stateCode: partyFormData.stateCode,
+      pincode: company.pincode || '458441',
+      gstin: partyFormData.gstin.trim().toUpperCase(),
+      pan: partyFormData.pan.trim().toUpperCase(),
+      billingAddress: partyFormData.billingAddress.trim() || `${partyFormData.city}, ${partyFormData.state}`,
+      openingBalance: Number(partyFormData.openingBalance) || 0,
+      balanceType: 'to_receive',
+      creditLimit: Number(partyFormData.creditLimit) || 500000,
+      paymentTermsDays: Number(partyFormData.paymentTermsDays) || 15,
+    });
+
+    handlePartySelect(created.id);
+    setShowQuickPartyModal(false);
+  };
+
+  const handleCreateQuickProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    const created = addProduct({
+      name: prodFormData.name.trim(),
+      hindiName: prodFormData.hindiName.trim(),
+      category: prodFormData.category.trim(),
+      sku: 'SKU-' + Date.now().toString().slice(-6),
+      hsnSac: prodFormData.hsnSac.trim(),
+      unit: prodFormData.unit as any,
+      sellingPrice: Number(prodFormData.sellingPrice) || 0,
+      purchasePrice: Number(prodFormData.purchasePrice) || 0,
+      gstRate: Number(prodFormData.gstRate) || 5,
+      currentStock: Number(prodFormData.currentStock) || 0,
+      bagCount: Number(prodFormData.bagCount) || 0,
+      bagWeightKg: Number(prodFormData.mandiBagWeightKg) || 50,
+      minStockLevel: 50,
+    });
+
+    // Auto add newly created product into the items list
+    const isInter = isInterState;
+    const gst = created.gstRate || 5;
+    const halfGst = gst / 2;
+    const qty = 1000;
+    const taxable = qty * created.sellingPrice;
+    const cgstAmt = isInter ? 0 : (taxable * halfGst) / 100;
+    const sgstAmt = isInter ? 0 : (taxable * halfGst) / 100;
+    const igstAmt = isInter ? (taxable * gst) / 100 : 0;
+
+    setItems([
+      ...items,
+      {
+        id: 'item-' + Date.now(),
+        productId: created.id,
+        name: created.name,
+        hsnSac: created.hsnSac,
+        unit: created.unit,
+        bags: 20,
+        qty: qty,
+        rate: created.sellingPrice,
+        taxableValue: taxable,
+        cgstPercent: isInter ? 0 : halfGst,
+        cgstAmount: cgstAmt,
+        sgstPercent: isInter ? 0 : halfGst,
+        sgstAmount: sgstAmt,
+        igstPercent: isInter ? gst : 0,
+        igstAmount: igstAmt,
+        total: taxable + cgstAmt + sgstAmt + igstAmt,
+      }
+    ]);
+
+    setShowQuickProdModal(false);
   };
 
   const handleProductSelect = (index: number, productId: string) => {
@@ -197,7 +318,7 @@ export default function CreateInvoicePage() {
     }
   };
 
-  // Aggregates
+  // Aggregates & Mandi Charges
   const totalBags = items.reduce((sum, i) => sum + (Number(i.bags) || 0), 0);
   const totalQty = items.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
   const taxableAmount = items.reduce((sum, i) => sum + (Number(i.taxableValue) || 0), 0);
@@ -205,7 +326,9 @@ export default function CreateInvoicePage() {
   const totalSgst = items.reduce((sum, i) => sum + (Number(i.sgstAmount) || 0), 0);
   const totalIgst = items.reduce((sum, i) => sum + (Number(i.igstAmount) || 0), 0);
   const totalTax = totalCgst + totalSgst + totalIgst;
-  const totalTaxableAmount = taxableAmount + Number(transportCharges || 0) + Number(otherCharges || 0);
+  
+  const allExtraCharges = Number(transportCharges || 0) + Number(katotiCharges || 0) + Number(hammaliCharges || 0) + Number(tulaiCharges || 0) + Number(otherCharges || 0);
+  const totalTaxableAmount = taxableAmount + allExtraCharges;
   const finalAmount = totalTaxableAmount + totalTax;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -233,8 +356,8 @@ export default function CreateInvoicePage() {
       totalQty,
       taxableAmount,
       transportCharges: Number(transportCharges || 0),
-      otherCharges: Number(otherCharges || 0),
-      otherChargesLabel,
+      otherCharges: allExtraCharges,
+      otherChargesLabel: katotiCharges > 0 ? 'Katoti & Mandi Charges (कट्ट)' : otherChargesLabel,
       totalTaxableAmount,
       totalCgst,
       totalSgst,
@@ -366,11 +489,21 @@ export default function CreateInvoicePage() {
           </div>
         </div>
 
-        {/* Customer / Party Select */}
+        {/* Customer / Party Select with Quick Add */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            {getTranslation('heading_party_info', language)}
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
+              {getTranslation('heading_party_info', language)}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowQuickPartyModal(true)}
+              className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-1 rounded-lg transition"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              {getTranslation('quick_add_party_btn', language) || '+ नई पार्टी'}
+            </button>
+          </div>
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
               {getTranslation('select_party', language)}
@@ -382,7 +515,7 @@ export default function CreateInvoicePage() {
             >
               {parties.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.businessName || p.name} ({p.city})
+                  {p.businessName || p.name} ({p.city}) {p.mandiShopNo ? `[${p.mandiShopNo}]` : ''}
                 </option>
               ))}
             </select>
@@ -473,19 +606,29 @@ export default function CreateInvoicePage() {
 
       {/* Items Section */}
       <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Wheat className="w-4 h-4 text-indigo-600" />
             {getTranslation('item_table_heading', language)}
           </h3>
-          <button
-            type="button"
-            onClick={addItemRow}
-            className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded-lg transition"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {getTranslation('btn_add_item_line', language)}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowQuickProdModal(true)}
+              className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 hover:bg-amber-100 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {getTranslation('quick_add_commodity_btn', language) || '+ नई जिंस'}
+            </button>
+            <button
+              type="button"
+              onClick={addItemRow}
+              className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded-lg transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {getTranslation('btn_add_item_line', language)}
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -618,18 +761,24 @@ export default function CreateInvoicePage() {
         </div>
       </div>
 
-      {/* Surcharges & Final Grand Total Grid */}
+      {/* Mandi Surcharges & Final Grand Total Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Left 7 Cols: Extra Mandi Charges & Notes */}
         <div className="md:col-span-7 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
-          <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
-            {getTranslation('transport_charges', language)} & {getTranslation('katoti_other_charges', language)}
-          </h3>
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-3">
+            <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider">
+              {getTranslation('transport_charges', language)} & {getTranslation('katoti_other_charges', language)}
+            </h3>
+            <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold px-2 py-0.5 rounded-full">
+              Mandi Custom Charges
+            </span>
+          </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {/* Transport */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('label_transport_charges_box', language)}
+                {getTranslation('label_transport_charges_box', language)} (₹)
               </label>
               <input
                 type="number"
@@ -640,9 +789,54 @@ export default function CreateInvoicePage() {
               />
             </div>
 
+            {/* Hammali */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {getTranslation('label_katoti_charges_box', language)}
+                {getTranslation('hammali_charge', language) || 'हम्माली (Hammali)'} (₹)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={hammaliCharges}
+                onChange={(e) => setHammaliCharges(Number(e.target.value))}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+              />
+            </div>
+
+            {/* Tulai */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                {getTranslation('tulai_charge', language) || 'तुलाई (Tulai)'} (₹)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={tulaiCharges}
+                onChange={(e) => setTulaiCharges(Number(e.target.value))}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+              />
+            </div>
+
+            {/* Katoti / Bardan */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                {getTranslation('label_katoti_charges_box', language)} (₹)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={katotiCharges}
+                onChange={(e) => setKatotiCharges(Number(e.target.value))}
+                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+              />
+            </div>
+
+            {/* Other Charges Amount */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                अतिरिक्त शुल्क (Other) (₹)
               </label>
               <input
                 type="number"
@@ -652,18 +846,19 @@ export default function CreateInvoicePage() {
                 className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              {getTranslation('label_other_charges_text', language)}
-            </label>
-            <input
-              type="text"
-              value={otherChargesLabel}
-              onChange={(e) => setOtherChargesLabel(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
-            />
+            {/* Other Charges Custom Label */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                {getTranslation('label_other_charges_text', language)}
+              </label>
+              <input
+                type="text"
+                value={otherChargesLabel}
+                onChange={(e) => setOtherChargesLabel(e.target.value)}
+                className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+              />
+            </div>
           </div>
 
           <div>
@@ -692,14 +887,37 @@ export default function CreateInvoicePage() {
                 <span>{getTranslation('taxable_subtotal', language)}:</span>
                 <span className="font-mono font-bold text-white">₹{taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>+ Transport Charges:</span>
-                <span className="font-mono">₹{transportCharges.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>+ {otherChargesLabel}:</span>
-                <span className="font-mono">₹{otherCharges.toFixed(2)}</span>
-              </div>
+              {transportCharges > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>+ Transport Charges:</span>
+                  <span className="font-mono">₹{transportCharges.toFixed(2)}</span>
+                </div>
+              )}
+              {hammaliCharges > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>+ Hammali (हम्माली):</span>
+                  <span className="font-mono">₹{hammaliCharges.toFixed(2)}</span>
+                </div>
+              )}
+              {tulaiCharges > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>+ Tulai (तुलाई):</span>
+                  <span className="font-mono">₹{tulaiCharges.toFixed(2)}</span>
+                </div>
+              )}
+              {katotiCharges > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>+ Bardan Katoti (कट्ट):</span>
+                  <span className="font-mono">₹{katotiCharges.toFixed(2)}</span>
+                </div>
+              )}
+              {otherCharges > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>+ {otherChargesLabel}:</span>
+                  <span className="font-mono">₹{otherCharges.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between font-bold text-sky-400 pt-1 border-t border-slate-700">
                 <span>{getTranslation('label_total_taxable_value', language)}</span>
                 <span className="font-mono">₹{totalTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
@@ -743,6 +961,347 @@ export default function CreateInvoicePage() {
           </div>
         </div>
       </div>
+
+      {/* QUICK ADD PARTY MODAL */}
+      {showQuickPartyModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-8 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {language === 'hi' ? 'त्वरित नई पार्टी जोड़ें' : language === 'en' ? 'Quick Add New Party' : 'Quick New Party Jodein'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">Mandi Vyapari, Aadhat / Kisaan</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuickPartyModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    व्यापार / फर्म का नाम (Firm Name) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="M/s Mahaveer Herbals"
+                    value={partyFormData.businessName}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, businessName: e.target.value })}
+                    className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    संपर्क व्यक्ति (Contact Person)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Jayesh Patel"
+                    value={partyFormData.name}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, name: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    पार्टी प्रकार (Type)
+                  </label>
+                  <select
+                    value={partyFormData.type}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, type: e.target.value as any })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  >
+                    <option value="customer">खरीदार / व्यापारी (Buyer)</option>
+                    <option value="supplier">सप्लायर / किसान (Supplier)</option>
+                    <option value="farmer">किसान (Farmer)</option>
+                    <option value="both">व्यापारी (Both / Dono)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    मोबाइल नं. (Mobile)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="9879554321"
+                    value={partyFormData.phone}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, phone: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    मंडी दुकान नं. (Shop No)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Block-B 14"
+                    value={partyFormData.mandiShopNo}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, mandiShopNo: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    GSTIN नंबर
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="24AACCM9981P1ZP"
+                    value={partyFormData.gstin}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, gstin: e.target.value })}
+                    className="w-full text-xs font-mono uppercase bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    शहर (City)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Unjha / Neemuch"
+                    value={partyFormData.city}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, city: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    राज्य (State)
+                  </label>
+                  <select
+                    value={partyFormData.stateCode}
+                    onChange={(e) => {
+                      const st = INDIAN_STATES.find((s) => s.code === e.target.value);
+                      if (st) {
+                        setPartyFormData({
+                          ...partyFormData,
+                          stateCode: st.code,
+                          state: st.name,
+                        });
+                      }
+                    }}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  >
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.name} ({s.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    उधारी सीमा (Credit Limit ₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={partyFormData.creditLimit}
+                    onChange={(e) => setPartyFormData({ ...partyFormData, creditLimit: Number(e.target.value) })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setShowQuickPartyModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                रद्द करें (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateQuickParty}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition"
+              >
+                पार्टी सेव करें व चुने (Save & Select)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD COMMODITY / PRODUCT MODAL */}
+      {showQuickProdModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-8 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Wheat className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {language === 'hi' ? 'त्वरित नई जिंस / फसल जोड़ें' : language === 'en' ? 'Quick Add New Commodity' : 'Quick New Jins / Crop Jodein'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">Mandi Agri Commodity & GST Catalog</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuickProdModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    जिंस का नाम (Commodity English) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Asgandh Roots / Jeera"
+                    value={prodFormData.name}
+                    onChange={(e) => setProdFormData({ ...prodFormData, name: e.target.value })}
+                    className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    हिंदी नाम (Hindi Name)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="उदा. असगंध / जीरा"
+                    value={prodFormData.hindiName}
+                    onChange={(e) => setProdFormData({ ...prodFormData, hindiName: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    HSN / SAC कोड
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="12119011"
+                    value={prodFormData.hsnSac}
+                    onChange={(e) => setProdFormData({ ...prodFormData, hsnSac: e.target.value })}
+                    className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    यूनिट (Unit)
+                  </label>
+                  <select
+                    value={prodFormData.unit}
+                    onChange={(e) => setProdFormData({ ...prodFormData, unit: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  >
+                    <option value="Kg">Kg (किलो)</option>
+                    <option value="Quintal">Quintal (क्विंटल)</option>
+                    <option value="Bori">Bori (बोरी)</option>
+                    <option value="Metric Ton">Metric Ton (टन)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    GST दर (%)
+                  </label>
+                  <select
+                    value={prodFormData.gstRate}
+                    onChange={(e) => setProdFormData({ ...prodFormData, gstRate: Number(e.target.value) })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 font-bold"
+                  >
+                    <option value={0}>0% (Exempted)</option>
+                    <option value={5}>5% (Mandi Standard GST)</option>
+                    <option value={12}>12%</option>
+                    <option value={18}>18%</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    बिक्री भाव (Rate ₹/Unit) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={prodFormData.sellingPrice}
+                    onChange={(e) => setProdFormData({ ...prodFormData, sellingPrice: Number(e.target.value) })}
+                    className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    खरीद भाव (Purchase Rate ₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={prodFormData.purchasePrice}
+                    onChange={(e) => setProdFormData({ ...prodFormData, purchasePrice: Number(e.target.value) })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    बोरी वजन (Bag Wt Kg)
+                  </label>
+                  <input
+                    type="number"
+                    value={prodFormData.mandiBagWeightKg}
+                    onChange={(e) => setProdFormData({ ...prodFormData, mandiBagWeightKg: Number(e.target.value) })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setShowQuickProdModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                रद्द करें (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateQuickProduct}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-md transition"
+              >
+                जिंस जोड़ें व बिल में डालें (Add & Insert Row)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -817,6 +817,36 @@ export const TRANSLATIONS = {
     en: '+ Add Item Row',
     hinglish: '+ Nayi Line Jodein',
   },
+  quick_add_party_btn: {
+    hi: '+ नई पार्टी जोड़ें',
+    en: '+ Quick Add Party',
+    hinglish: '+ Nayi Party Jodein',
+  },
+  quick_add_commodity_btn: {
+    hi: '+ नई जिंस जोड़ें',
+    en: '+ Add Commodity',
+    hinglish: '+ Nayi Jins Jodein',
+  },
+  hammali_charge: {
+    hi: 'हम्माली खर्च (₹)',
+    en: 'Hammali Charges (₹)',
+    hinglish: 'Hammali Kharch (₹)',
+  },
+  tulai_charge: {
+    hi: 'तुलाई खर्च (₹)',
+    en: 'Tulai / Weighing (₹)',
+    hinglish: 'Tulai Kharch (₹)',
+  },
+  mandi_tax_charge: {
+    hi: 'मंडी टैक्स / सेस (₹)',
+    en: 'Mandi Tax / Cess (₹)',
+    hinglish: 'Mandi Tax / Cess (₹)',
+  },
+  aadhat_commission_charge: {
+    hi: 'आढ़त / कमीशन (₹)',
+    en: 'Aadhat / Commission (₹)',
+    hinglish: 'Aadhat / Commission (₹)',
+  },
   select_commodity_placeholder: {
     hi: '-- जिंस चुनें --',
     en: '-- Select Commodity --',
