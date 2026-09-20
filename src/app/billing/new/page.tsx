@@ -313,9 +313,7 @@ export default function CreateInvoicePage() {
   };
 
   const removeItemRow = (index: number) => {
-    if (items.length > 1) {
-      setItems(items.filter((_, idx) => idx !== index));
-    }
+    setItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   // Aggregates & Mandi Charges
@@ -333,6 +331,10 @@ export default function CreateInvoicePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (items.length === 0) {
+      alert(language === 'hi' ? 'कृपया बिल बनाने के लिए कम से कम 1 जिंस / आइटम जोड़ें।' : language === 'en' ? 'Please add at least 1 commodity / item row to create bill.' : 'Kripya kam se kam 1 item row jodein.');
+      return;
+    }
     const party = parties.find((p) => p.id === selectedPartyId) || parties[0];
 
     const newInvoice = addInvoice({
@@ -649,113 +651,131 @@ export default function CreateInvoicePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
-              {items.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-slate-50/50">
-                  <td className="py-2 px-2 text-slate-400 font-bold">{idx + 1}</td>
-                  
-                  {/* Item Name / Selector */}
-                  <td className="py-2 px-2">
-                    <select
-                      value={item.productId || ''}
-                      onChange={(e) => handleProductSelect(idx, e.target.value)}
-                      className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5"
-                    >
-                      <option value="">{getTranslation('select_commodity_placeholder', language)}</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} {p.hindiName ? `(${p.hindiName})` : ''} - ₹{p.sellingPrice}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-
-                  {/* HSN */}
-                  <td className="py-2 px-2">
-                    <input
-                      type="text"
-                      value={item.hsnSac}
-                      onChange={(e) => updateItemRow(idx, 'hsnSac', e.target.value)}
-                      className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center"
-                    />
-                  </td>
-
-                  {/* Bags */}
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      placeholder="44"
-                      value={item.bags || ''}
-                      onChange={(e) => updateItemRow(idx, 'bags', e.target.value)}
-                      className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center font-bold"
-                    />
-                  </td>
-
-                  {/* Qty */}
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={item.qty}
-                      onChange={(e) => updateItemRow(idx, 'qty', e.target.value)}
-                      className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
-                    />
-                  </td>
-
-                  {/* Unit */}
-                  <td className="py-2 px-2">
-                    <select
-                      value={item.unit}
-                      onChange={(e) => updateItemRow(idx, 'unit', e.target.value)}
-                      className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-1 py-1.5"
-                    >
-                      <option value="Kg">Kg</option>
-                      <option value="Quintal">Quintal</option>
-                      <option value="Bori">Bori</option>
-                      <option value="Metric Ton">Ton</option>
-                    </select>
-                  </td>
-
-                  {/* Rate */}
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={item.rate}
-                      onChange={(e) => updateItemRow(idx, 'rate', e.target.value)}
-                      className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
-                    />
-                  </td>
-
-                  {/* Taxable */}
-                  <td className="py-2 px-2 text-right font-bold text-slate-800 dark:text-slate-200">
-                    ₹{item.taxableValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-
-                  {/* GST */}
-                  <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
-                    ₹{(isInterState ? item.igstAmount : item.cgstAmount + item.sgstAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-
-                  {/* Total */}
-                  <td className="py-2 px-2 text-right font-black text-slate-900 dark:text-white">
-                    ₹{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-
-                  {/* Remove */}
-                  <td className="py-2 px-2 text-center">
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={11} className="py-8 text-center bg-slate-50/50 dark:bg-slate-900/30">
+                    <p className="text-xs font-semibold text-slate-500 mb-2">
+                      {language === 'hi' ? 'कोई जिंस नहीं जोड़ी गई है' : language === 'en' ? 'No commodities added yet' : 'Koi item nahi joda gaya'}
+                    </p>
                     <button
                       type="button"
-                      onClick={() => removeItemRow(idx)}
-                      disabled={items.length <= 1}
-                      className="text-slate-400 hover:text-rose-500 disabled:opacity-30 p-1"
+                      onClick={addItemRow}
+                      className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-xs transition"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" />
+                      {getTranslation('btn_add_item_line', language)}
                     </button>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                items.map((item, idx) => (
+                  <tr key={item.id || idx} className="hover:bg-slate-50/50">
+                    <td className="py-2 px-2 text-slate-400 font-bold">{idx + 1}</td>
+                    
+                    {/* Item Name / Selector */}
+                    <td className="py-2 px-2">
+                      <select
+                        value={item.productId || ''}
+                        onChange={(e) => handleProductSelect(idx, e.target.value)}
+                        className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5"
+                      >
+                        <option value="">{getTranslation('select_commodity_placeholder', language)}</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} {p.hindiName && language !== 'en' ? `(${p.hindiName})` : ''} - ₹{p.sellingPrice}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* HSN */}
+                    <td className="py-2 px-2">
+                      <input
+                        type="text"
+                        value={item.hsnSac}
+                        onChange={(e) => updateItemRow(idx, 'hsnSac', e.target.value)}
+                        className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center"
+                      />
+                    </td>
+
+                    {/* Bags */}
+                    <td className="py-2 px-2">
+                      <input
+                        type="number"
+                        placeholder="44"
+                        value={item.bags || ''}
+                        onChange={(e) => updateItemRow(idx, 'bags', e.target.value)}
+                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-center font-bold"
+                      />
+                    </td>
+
+                    {/* Qty */}
+                    <td className="py-2 px-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={item.qty}
+                        onChange={(e) => updateItemRow(idx, 'qty', e.target.value)}
+                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
+                      />
+                    </td>
+
+                    {/* Unit */}
+                    <td className="py-2 px-2">
+                      <select
+                        value={item.unit}
+                        onChange={(e) => updateItemRow(idx, 'unit', e.target.value)}
+                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-1 py-1.5"
+                      >
+                        <option value="Kg">Kg</option>
+                        <option value="Quintal">Quintal</option>
+                        <option value="Bori">Bori</option>
+                        <option value="Metric Ton">Ton</option>
+                      </select>
+                    </td>
+
+                    {/* Rate */}
+                    <td className="py-2 px-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={item.rate}
+                        onChange={(e) => updateItemRow(idx, 'rate', e.target.value)}
+                        className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-right font-bold"
+                      />
+                    </td>
+
+                    {/* Taxable */}
+                    <td className="py-2 px-2 text-right font-bold text-slate-800 dark:text-slate-200">
+                      ₹{item.taxableValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* GST */}
+                    <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
+                      ₹{(isInterState ? item.igstAmount : item.cgstAmount + item.sgstAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* Total */}
+                    <td className="py-2 px-2 text-right font-black text-slate-900 dark:text-white">
+                      ₹{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* Remove */}
+                    <td className="py-2 px-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeItemRow(idx)}
+                        title={language === 'hi' ? 'आइटम हटाएं' : language === 'en' ? 'Delete Row' : 'Row Hatayein'}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4 text-rose-500 hover:text-rose-700" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
