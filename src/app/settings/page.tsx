@@ -493,15 +493,19 @@ export default function SettingsPage() {
               <input
                 type="text"
                 required
+                placeholder="e.g. yourname@okaxis or 98260XXXXX@ybl"
                 value={formData.bankDetails.upiId}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    bankDetails: { ...formData.bankDetails, upiId: e.target.value },
+                    bankDetails: { ...formData.bankDetails, upiId: e.target.value.trim() },
                   })
                 }
                 className="w-full text-xs font-medium text-indigo-600 bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
               />
+              <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+                💡 <strong>जरूरी:</strong> यहाँ अपनी असली सक्रिय UPI ID डालें (जैसे PhonePe/GPay/Paytm)। डेमो ID डालने पर UPI ऐप 'Not Verified' दिखाता है।
+              </p>
             </div>
           </div>
 
