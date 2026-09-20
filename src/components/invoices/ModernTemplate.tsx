@@ -10,6 +10,7 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
   const isInterState = invoice.isInterState;
   const activeFontFamily = getInvoiceFontFamily(company.invoiceFont);
   const docMeta = getDocumentMeta(invoice.docType, 'en');
+  const activeBank = invoice.bankDetails || company.bankDetails;
 
   return (
     <div 
@@ -154,17 +155,17 @@ export const ModernTemplate: React.FC<{ invoice: Invoice; company: CompanyProfil
               <p className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
                 Bank & UPI Payment Details
               </p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Bank Name:</span> <span className="font-extrabold text-slate-900 dark:text-white">{company.bankDetails?.bankName || 'HDFC Bank'}</span></p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Branch:</span> <span>{company.bankDetails?.branch || 'Vijay talkies compound neemuch 458441'}</span></p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Name:</span> <span className="font-extrabold uppercase text-slate-900 dark:text-white">{company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}</span></p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Number:</span> <span className="font-mono font-black text-slate-900 dark:text-white tracking-wider">{company.bankDetails?.accountNumber || '50200098211151'}</span></p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">IFSC Code:</span> <span className="font-mono font-black text-slate-900 dark:text-white">{company.bankDetails?.ifsc || 'HDFC0000624'}</span></p>
-              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">UPI ID:</span> <span className="text-indigo-600 dark:text-indigo-400 font-mono font-black">{company.bankDetails?.upiId || '7024537491@ybl'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Bank Name:</span> <span className="font-extrabold text-slate-900 dark:text-white">{activeBank?.bankName || 'HDFC Bank'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">Branch:</span> <span>{activeBank?.branch || 'Vijay talkies compound neemuch 458441'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Name:</span> <span className="font-extrabold uppercase text-slate-900 dark:text-white">{activeBank?.accountName || 'PRO RATHORE TRADING COMPANY'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">A/C Number:</span> <span className="font-mono font-black text-slate-900 dark:text-white tracking-wider">{activeBank?.accountNumber || '50200098211151'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">IFSC Code:</span> <span className="font-mono font-black text-slate-900 dark:text-white">{activeBank?.ifsc || 'HDFC0000624'}</span></p>
+              <p><span className="font-bold text-slate-600 dark:text-slate-400 min-w-[80px] inline-block">UPI ID:</span> <span className="text-indigo-600 dark:text-indigo-400 font-mono font-black">{activeBank?.upiId || '7024537491@ybl'}</span></p>
             </div>
             <div className="shrink-0">
               <UpiQrCode
-                upiId={company.bankDetails?.upiId || '7024537491@ybl'}
-                accountName={company.bankDetails?.accountName || 'PRO RATHORE TRADING COMPANY'}
+                upiId={activeBank?.upiId || '7024537491@ybl'}
+                accountName={activeBank?.accountName || 'PRO RATHORE TRADING COMPANY'}
                 amount={invoice.finalAmount}
                 invoiceNumber={invoice.invoiceNumber}
                 size={85}

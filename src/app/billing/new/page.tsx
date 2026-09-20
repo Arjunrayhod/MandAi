@@ -21,16 +21,21 @@ import {
   FileCheck2,
   PackageCheck,
   RotateCcw,
-  Printer
+  Printer,
+  Landmark
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const { invoices, company, parties, products, addInvoice, addParty, addProduct, language } = useAppStore();
+  const { invoices, company, parties, products, bankAccounts, addInvoice, addParty, addProduct, language } = useAppStore();
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dueDefault = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
+
+  const defaultBank = bankAccounts?.find((b) => b.isDefault) || bankAccounts?.[0];
+  const [selectedBankId, setSelectedBankId] = useState<string>(defaultBank?.id || '');
+  const activeBankPreview = bankAccounts?.find((b) => b.id === selectedBankId) || defaultBank;
 
   const [docType, setDocType] = useState<DocumentType>('tax_invoice');
   const [invoiceNumber, setInvoiceNumber] = useState<string>(String(company.invoiceNextNumber || 170));
@@ -356,6 +361,16 @@ export default function CreateInvoicePage() {
     }
     const party = parties.find((p) => p.id === selectedPartyId) || parties[0];
 
+    const chosenBank = bankAccounts?.find((b) => b.id === selectedBankId) || defaultBank;
+    const invoiceBankDetails = chosenBank ? {
+      bankName: chosenBank.bankName,
+      branch: chosenBank.branch,
+      accountName: chosenBank.accountName,
+      accountNumber: chosenBank.accountNumber,
+      ifsc: chosenBank.ifsc,
+      upiId: chosenBank.upiId,
+    } : company.bankDetails;
+
     const newInvoice = addInvoice({
       docType,
       invoiceNumber: invoiceNumber.trim(),
@@ -390,6 +405,8 @@ export default function CreateInvoicePage() {
       paidAmount: 0,
       balanceAmount: finalAmount,
       status: 'unpaid',
+      bankAccountId: chosenBank?.id,
+      bankDetails: invoiceBankDetails,
       notes,
     });
 
@@ -625,6 +642,66 @@ export default function CreateInvoicePage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Bank Account Selection Card for Bill */}
+          <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
+                <Landmark className="w-4 h-4 text-indigo-600" />
+                {language === 'hi' ? 'बिल पर प्रिंट हेतु बैंक खाता एवं QR कोड (Select Bank Account for Bill)' : 'Bank Account & UPI QR for Invoice'}
+              </h3>
+              <Link 
+                href="/money" 
+                target="_blank"
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg transition"
+              >
+                + {language === 'hi' ? 'नया बैंक खाता जोड़ें' : 'Manage Bank Accounts'}
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  {language === 'hi' ? 'बैंक खाता चुनें (Select Bank to Print)' : 'Select Bank Account to Print'}
+                </label>
+                <select
+                  value={selectedBankId}
+                  onChange={(e) => setSelectedBankId(e.target.value)}
+                  className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
+                >
+                  {bankAccounts.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.bankName} - {b.accountNumber} ({b.accountName}) {b.isDefault ? '⭐ [मुख्य / Primary]' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selected Bank Preview Pill */}
+              {activeBankPreview ? (
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-300 flex justify-between items-center">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span>{activeBankPreview.bankName}</span>
+                      <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                        IFSC: {activeBankPreview.ifsc}
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-mono">
+                      A/C: {activeBankPreview.accountNumber} • UPI: {activeBankPreview.upiId}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded-lg shrink-0">
+                    ✓ QR Enabled
+                  </span>
+                </div>
+              ) : (
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-500">
+                  {company.bankDetails?.bankName} ({company.bankDetails?.accountNumber})
+                </div>
+              )}
             </div>
           </div>
 
@@ -1037,6 +1114,16 @@ export default function CreateInvoicePage() {
                 <p className="text-[10px] text-indigo-200/70 uppercase tracking-tight leading-tight">
                   {numberToIndianWords(finalAmount)}
                 </p>
+              </div>
+
+              {/* Selected Bank Indicator in Sidebar */}
+              <div className="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <Landmark className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-slate-400">{language === 'hi' ? 'प्रिंट बैंक:' : 'Bank:'}</span>
+                  <span className="font-bold text-white truncate max-w-[120px]">{activeBankPreview?.bankName || 'HDFC Bank'}</span>
+                </div>
+                <span className="text-[10px] font-mono text-indigo-300">...{activeBankPreview?.accountNumber?.slice(-4) || '1151'}</span>
               </div>
 
               {/* Instant Save & Print Button in Sticky Sidebar */}

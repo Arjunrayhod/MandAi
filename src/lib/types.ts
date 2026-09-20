@@ -171,6 +171,8 @@ export interface Invoice {
   balanceAmount: number;
   status: 'paid' | 'partial' | 'unpaid' | 'overdue';
   paymentMode?: string;
+  bankAccountId?: string;
+  bankDetails?: BankDetails;
   notes?: string;
   createdAt: string;
 }

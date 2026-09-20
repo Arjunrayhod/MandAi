@@ -5,7 +5,7 @@ import { Invoice, CompanyProfile } from '@/lib/types';
 import { generateWhatsAppReminder, INVOICE_FONTS } from '@/lib/gstUtils';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/translations';
-import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft, Type } from 'lucide-react';
+import { Printer, Share2, DollarSign, Download, CheckCircle, ArrowLeft, Type, Landmark } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -21,12 +21,14 @@ export const InvoicePrintActions: React.FC<Props> = ({
   currentTemplate,
   onTemplateChange,
 }) => {
-  const { recordPayment, updateCompany, language } = useAppStore();
+  const { recordPayment, updateCompany, updateInvoice, bankAccounts, language } = useAppStore();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [payAmount, setPayAmount] = useState(invoice.balanceAmount);
   const [payMode, setPayMode] = useState<'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque'>('Cash');
   const [payRef, setPayRef] = useState('');
   const [paySuccess, setPaySuccess] = useState(false);
+
+  const activeBank = invoice.bankDetails || company.bankDetails;
 
   const handlePrint = () => {
     window.print();
@@ -40,7 +42,7 @@ export const InvoicePrintActions: React.FC<Props> = ({
       amount: invoice.balanceAmount > 0 ? invoice.balanceAmount : invoice.finalAmount,
       dueDate: invoice.dueDate,
       companyName: company.name,
-      upiId: company.bankDetails.upiId,
+      upiId: activeBank?.upiId || company.bankDetails.upiId,
       phone: invoice.party.phone,
       lang,
     });
@@ -113,6 +115,53 @@ export const InvoicePrintActions: React.FC<Props> = ({
               ))}
             </select>
           </div>
+
+          {/* Bank Account Selector */}
+          {bankAccounts && bankAccounts.length > 0 && (
+            <>
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+              <div className="flex items-center gap-2">
+                <Landmark className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-xs font-medium text-slate-500">{language === 'hi' ? 'प्रिंट बैंक खाता' : 'Bank A/C'}</span>
+                <select
+                  value={
+                    invoice.bankAccountId ||
+                    bankAccounts.find(
+                      (b) =>
+                        b.accountNumber === invoice.bankDetails?.accountNumber ||
+                        b.accountNumber === company.bankDetails?.accountNumber
+                    )?.id ||
+                    bankAccounts.find((b) => b.isDefault)?.id ||
+                    bankAccounts[0]?.id ||
+                    ''
+                  }
+                  onChange={(e) => {
+                    const sel = bankAccounts.find((b) => b.id === e.target.value);
+                    if (sel) {
+                      updateInvoice(invoice.id, {
+                        bankAccountId: sel.id,
+                        bankDetails: {
+                          bankName: sel.bankName,
+                          branch: sel.branch,
+                          accountName: sel.accountName,
+                          accountNumber: sel.accountNumber,
+                          ifsc: sel.ifsc,
+                          upiId: sel.upiId,
+                        },
+                      });
+                    }
+                  }}
+                  className="text-xs font-semibold bg-slate-100 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 focus:outline-indigo-500 max-w-[190px]"
+                >
+                  {bankAccounts.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.bankName} - {b.accountNumber.slice(-4)} {b.isDefault ? '★' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Action Buttons */}
