@@ -20,7 +20,8 @@ import {
   CheckCircle,
   FileCheck2,
   PackageCheck,
-  RotateCcw
+  RotateCcw,
+  Printer
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -968,8 +969,8 @@ export default function CreateInvoicePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-700">
-            <div className="flex justify-between items-baseline mb-2">
+          <div className="pt-4 border-t border-slate-700 space-y-2.5">
+            <div className="flex justify-between items-baseline">
               <span className="text-sm font-bold text-indigo-300">{getTranslation('grand_total', language)}:</span>
               <span className="text-2xl font-black text-white font-mono">
                 {formatIndianCurrency(finalAmount)}
@@ -978,7 +979,50 @@ export default function CreateInvoicePage() {
             <p className="text-[10px] text-slate-400 uppercase tracking-tight leading-tight">
               {numberToIndianWords(finalAmount)}
             </p>
+            <button
+              type="submit"
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition transform active:scale-95 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>{language === 'hi' ? 'सेव करें और प्रिंट देखें' : 'Save & View Bill'}</span>
+            </button>
           </div>
+        </div>
+      </div>
+
+      {/* Main Bottom Save & Print Action Bar */}
+      <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 z-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600">
+            <Receipt className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-900 dark:text-white">
+              {language === 'hi' ? 'बिल विवरण पूरा भर लिया?' : 'Ready to generate bill?'}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              {language === 'hi'
+                ? `कुल बिल: ${formatIndianCurrency(finalAmount)} (${items.length} आइटम)`
+                : `Total: ${formatIndianCurrency(finalAmount)} (${items.length} items)`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <Link
+            href="/billing"
+            className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition text-center"
+          >
+            {language === 'hi' ? 'रद्द करें' : 'Cancel'}
+          </Link>
+          
+          <button
+            type="submit"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-black text-sm px-8 py-3 rounded-2xl shadow-xl hover:shadow-indigo-500/25 transition transform active:scale-95 cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>{language === 'hi' ? '💾 बिल सेव करें और प्रिंट करें (Save & Print)' : 'Save & Print Invoice'}</span>
+          </button>
         </div>
       </div>
 
