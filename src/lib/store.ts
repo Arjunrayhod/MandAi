@@ -262,10 +262,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   deleteInvoice: (id) => {
     set((state) => {
+      const targetInv = state.invoices.find((inv) => inv.id === id);
+      let updatedParties = state.parties;
+      if (targetInv && targetInv.balanceAmount > 0) {
+        updatedParties = state.parties.map((p) => {
+          if (p.id === targetInv.partyId) {
+            return {
+              ...p,
+              currentBalance: Math.max(0, p.currentBalance - targetInv.balanceAmount),
+            };
+          }
+          return p;
+        });
+      }
       const updated = state.invoices.filter((inv) => inv.id !== id);
-      const next = { ...state, invoices: updated };
+      const next = { ...state, invoices: updated, parties: updatedParties };
       if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return { invoices: updated };
+      return next;
     });
   },
 
@@ -281,13 +294,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (newPayment.invoiceId) {
         updatedInvoices = state.invoices.map((inv) => {
           if (inv.id === newPayment.invoiceId) {
-            const newPaid = inv.paidAmount + newPayment.amount;
+            const newPaid = (inv.paidAmount || 0) + newPayment.amount;
             const newBal = Math.max(0, inv.finalAmount - newPaid);
             return {
               ...inv,
               paidAmount: newPaid,
               balanceAmount: newBal,
-              status: newBal === 0 ? 'paid' : newPaid > 0 ? 'partial' : 'unpaid',
+              status: (newBal <= 0 ? 'paid' : newPaid > 0 ? 'partial' : 'unpaid') as any,
             };
           }
           return inv;
@@ -309,28 +322,31 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (newPayment.paymentMode === 'Cash') {
         updatedCash += newPayment.type === 'received' ? newPayment.amount : -newPayment.amount;
-      } else if (newPayment.bankAccountId) {
-        updatedBanks = state.bankAccounts.map((b) => {
-          if (b.id === newPayment.bankAccountId) {
-            return {
-              ...b,
-              currentBalance: b.currentBalance + (newPayment.type === 'received' ? newPayment.amount : -newPayment.amount),
-            };
-          }
-          return b;
-        });
+      } else {
+        const targetBankId = newPayment.bankAccountId || (state.bankAccounts.length > 0 ? state.bankAccounts[0].id : undefined);
+        if (targetBankId) {
+          updatedBanks = state.bankAccounts.map((b) => {
+            if (b.id === targetBankId) {
+              return {
+                ...b,
+                currentBalance: b.currentBalance + (newPayment.type === 'received' ? newPayment.amount : -newPayment.amount),
+              };
+            }
+            return b;
+          });
+        }
       }
 
       const newTx: CashTransaction = {
         id: 'tx-' + Date.now(),
         type: newPayment.type === 'received' ? 'cash_in' : 'cash_out',
         amount: newPayment.amount,
-        date: newPayment.date,
+        date: newPayment.date || new Date().toISOString().split('T')[0],
         category: 'Mandi Payment (' + newPayment.paymentMode + ')',
-        description: 'Payment ' + newPayment.type + ' for ' + newPayment.partyName + (newPayment.invoiceNumber ? ' (Bill #' + newPayment.invoiceNumber + ')' : ''),
+        description: 'Payment ' + (newPayment.type === 'received' ? 'received from' : 'paid to') + ' ' + newPayment.partyName + (newPayment.invoiceNumber ? ' (Bill #' + newPayment.invoiceNumber + ')' : '') + (newPayment.referenceNo ? ' Ref: ' + newPayment.referenceNo : ''),
         partyId: newPayment.partyId,
         partyName: newPayment.partyName,
-        bankAccountId: newPayment.bankAccountId,
+        bankAccountId: newPayment.bankAccountId || (newPayment.paymentMode !== 'Cash' && state.bankAccounts[0] ? state.bankAccounts[0].id : undefined),
         createdAt: new Date().toISOString(),
       };
 

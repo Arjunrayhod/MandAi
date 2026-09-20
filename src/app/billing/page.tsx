@@ -16,14 +16,31 @@ import {
   FileText,
   Filter,
   CheckCircle2,
-  Clock
+  Clock,
+  DollarSign,
+  CreditCard,
+  Building,
+  CheckCircle,
+  X,
+  AlertTriangle
 } from 'lucide-react';
+import { Invoice } from '@/lib/types';
 
 export default function InvoicesListPage() {
-  const { invoices, company, deleteInvoice, language } = useAppStore();
+  const { invoices, company, bankAccounts, recordPayment, deleteInvoice, language } = useAppStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
 
+  // Payment Modal State
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
+  const [payMode, setPayMode] = useState<'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque'>('UPI');
+  const [selectedBankId, setSelectedBankId] = useState<string>(bankAccounts[0]?.id || '');
+  const [payRef, setPayRef] = useState('');
+  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paySuccessMsg, setPaySuccessMsg] = useState<string | null>(null);
+
+  // Filter calculations
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
       inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,15 +51,57 @@ export default function InvoicesListPage() {
       statusFilter === 'all'
         ? true
         : statusFilter === 'paid'
-        ? inv.status === 'paid'
-        : statusFilter === 'unpaid'
-        ? inv.balanceAmount > 0
-        : inv.status === 'overdue';
+        ? inv.status === 'paid' || inv.balanceAmount <= 0
+        : inv.balanceAmount > 0;
 
     return matchesSearch && matchesStatus;
   });
 
-  const handleWhatsApp = (inv: typeof invoices[0]) => {
+  // KPI calculations
+  const totalBilled = invoices.reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+  const totalReceived = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+  const totalBalanceDue = invoices.reduce((sum, inv) => sum + (inv.balanceAmount || 0), 0);
+
+  const openPaymentModal = (inv: Invoice) => {
+    setSelectedInvoice(inv);
+    setPayAmount(inv.balanceAmount > 0 ? inv.balanceAmount : inv.finalAmount);
+    setPayMode('UPI');
+    setSelectedBankId(bankAccounts[0]?.id || '');
+    setPayRef('');
+    setPayDate(new Date().toISOString().split('T')[0]);
+    setPaySuccessMsg(null);
+  };
+
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInvoice) return;
+
+    const amt = Number(payAmount);
+    if (isNaN(amt) || amt <= 0) {
+      alert(language === 'hi' ? 'कृपया सही भुगतान राशि दर्ज करें।' : 'Please enter a valid amount.');
+      return;
+    }
+
+    recordPayment({
+      invoiceId: selectedInvoice.id,
+      invoiceNumber: selectedInvoice.invoiceNumber,
+      partyId: selectedInvoice.partyId,
+      partyName: selectedInvoice.party.businessName || selectedInvoice.party.name,
+      amount: amt,
+      date: payDate,
+      paymentMode: payMode,
+      bankAccountId: payMode === 'Cash' ? undefined : selectedBankId,
+      referenceNo: payRef,
+      type: 'received',
+    });
+
+    const targetDest = payMode === 'Cash' ? 'Cash in Hand (नकद गल्ला)' : (bankAccounts.find(b => b.id === selectedBankId)?.bankName || 'Bank Account');
+    setPaySuccessMsg(`✓ भुगतान दर्ज सफल! ₹${amt.toLocaleString('en-IN')} ${targetDest} में जुड़ गए और बिल व खाता बही अपडेट हो गई।`);
+    setSelectedInvoice(null);
+    setTimeout(() => setPaySuccessMsg(null), 4500);
+  };
+
+  const handleWhatsApp = (inv: Invoice) => {
     const { url } = generateWhatsAppReminder({
       customerName: inv.party.businessName || inv.party.name,
       businessName: inv.party.businessName || inv.party.name,
@@ -58,7 +117,20 @@ export default function InvoicesListPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Toast Notification */}
+      {paySuccessMsg && (
+        <div className="bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between text-xs sm:text-sm font-bold animate-in fade-in slide-in-from-top-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span>{paySuccessMsg}</span>
+          </div>
+          <button onClick={() => setPaySuccessMsg(null)} className="p-1 hover:bg-emerald-700 rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -67,7 +139,9 @@ export default function InvoicesListPage() {
             {t('billing_title', language)}
           </h1>
           <p className="text-xs text-slate-500">
-            {t('billing_subtitle', language)}
+            {language === 'hi' 
+              ? 'मंडी बिल बनाएं, पेमेंट स्टेटस चुकता/पेंडिंग बदलें और सीधे बैंक या नकद में हिसाब जोड़ें'
+              : 'Create mandi bills, record invoice payments, and track live cash/bank accounting'}
           </p>
         </div>
 
@@ -78,6 +152,60 @@ export default function InvoicesListPage() {
           <Plus className="w-4 h-4" />
           {t('new_bill_btn', language)}
         </Link>
+      </div>
+
+      {/* Quick KPI Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              {language === 'hi' ? 'कुल बिलिंग राशि' : 'Total Billed Amount'}
+            </p>
+            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">
+              {formatIndianCurrency(totalBilled)}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              {invoices.length} {language === 'hi' ? 'कुल बिल' : 'Total Invoices'}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
+            <Receipt className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              {language === 'hi' ? 'कुल जमा भुगतान' : 'Total Received / Paid'}
+            </p>
+            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              {formatIndianCurrency(totalReceived)}
+            </p>
+            <p className="text-[10px] text-emerald-600/80 mt-0.5">
+              {invoices.filter(i => i.status === 'paid' || i.balanceAmount <= 0).length} {language === 'hi' ? 'बिल चुकता' : 'Paid Bills'}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              {language === 'hi' ? 'कुल बाकी लेना (Pending)' : 'Total Pending Balance'}
+            </p>
+            <p className="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">
+              {formatIndianCurrency(totalBalanceDue)}
+            </p>
+            <p className="text-[10px] text-rose-600/80 mt-0.5">
+              {invoices.filter(i => i.balanceAmount > 0).length} {language === 'hi' ? 'बिल बकाया' : 'Unpaid Bills'}
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -102,15 +230,15 @@ export default function InvoicesListPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg capitalize transition ${
                   statusFilter === st
-                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
                     : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
                 {st === 'all'
-                  ? t('filter_all_docs', language)
+                  ? `${t('filter_all_docs', language)} (${invoices.length})`
                   : st === 'unpaid'
-                  ? t('pending', language)
-                  : t('paid', language)}
+                  ? `⚠️ ${t('pending', language)} (${invoices.filter(i => i.balanceAmount > 0).length})`
+                  : `✓ ${t('paid', language)} (${invoices.filter(i => i.status === 'paid' || i.balanceAmount <= 0).length})`}
               </button>
             ))}
           </div>
@@ -131,7 +259,7 @@ export default function InvoicesListPage() {
                 <th className="py-3 px-4 text-right">{t('col_total_amount', language)}</th>
                 <th className="py-3 px-4 text-right">{t('balance_to_receive', language)}</th>
                 <th className="py-3 px-4 text-center">{t('status', language)}</th>
-                <th className="py-3 px-4 text-right">{t('actions', language)}</th>
+                <th className="py-3 px-4 text-right">{language === 'hi' ? 'भुगतान दर्ज / एक्शन' : 'Payment & Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -143,83 +271,272 @@ export default function InvoicesListPage() {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition">
-                    <td className="py-3.5 px-4 font-bold font-mono text-indigo-600">
-                      #{inv.invoiceNumber}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {inv.party.businessName || inv.party.name}
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        {inv.party.city} • GST: {inv.party.gstin || 'N/A'}
-                      </p>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {inv.invoiceDate}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                      {inv.dueDate}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
-                      ₹{inv.taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      {formatIndianCurrency(inv.finalAmount)}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-rose-600 whitespace-nowrap">
-                      {inv.balanceAmount > 0 ? formatIndianCurrency(inv.balanceAmount) : '₹0.00'}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        inv.status === 'paid'
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                          : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
-                      }`}>
-                        {inv.status === 'paid' ? (
-                          <><CheckCircle2 className="w-3 h-3" /> {t('paid', language)}</>
+                filteredInvoices.map((inv) => {
+                  const isPaid = inv.status === 'paid' || inv.balanceAmount <= 0;
+                  const isPartial = inv.status === 'partial' && inv.balanceAmount > 0;
+
+                  return (
+                    <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition">
+                      <td className="py-3.5 px-4 font-bold font-mono text-indigo-600">
+                        #{inv.invoiceNumber}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <p className="font-bold text-slate-900 dark:text-white">
+                          {inv.party.businessName || inv.party.name}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {inv.party.city} • GST: {inv.party.gstin || 'N/A'}
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {inv.invoiceDate}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                        {inv.dueDate}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                        ₹{inv.taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        {formatIndianCurrency(inv.finalAmount)}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold whitespace-nowrap">
+                        {inv.balanceAmount > 0 ? (
+                          <span className="text-rose-600 font-bold">{formatIndianCurrency(inv.balanceAmount)}</span>
                         ) : (
-                          <><Clock className="w-3 h-3" /> {t('pending', language)}</>
+                          <span className="text-emerald-600 font-bold">₹0.00 (चुकता)</span>
                         )}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleWhatsApp(inv)}
-                          title={t('whatsapp_reminder', language)}
-                          className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                        </button>
-                        <Link
-                          href={`/billing/${inv.id}`}
-                          title={t('view', language)}
-                          className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white transition"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Link>
-                        <button
-                          onClick={() => {
-                            if (confirm(t('confirm_delete', language))) {
-                              deleteInvoice(inv.id);
-                            }
-                          }}
-                          title={t('delete', language)}
-                          className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-500 hover:text-white transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {isPaid ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {t('paid', language)}
+                          </span>
+                        ) : isPartial ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300">
+                            <Clock className="w-3 h-3 text-sky-600" />
+                            {language === 'hi' ? 'आंशिक (Partial)' : 'Partial'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                            <Clock className="w-3 h-3 text-amber-600" />
+                            {t('pending', language)}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {/* Record Payment Button */}
+                          {!isPaid && (
+                            <button
+                              onClick={() => openPaymentModal(inv)}
+                              title={language === 'hi' ? 'भुगतान दर्ज करें' : 'Record Payment'}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" />
+                              <span>{language === 'hi' ? 'पेमेंट लें' : 'Pay'}</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => handleWhatsApp(inv)}
+                            title={t('whatsapp_reminder', language)}
+                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                          
+                          <Link
+                            href={`/billing/${inv.id}`}
+                            title={t('view', language)}
+                            className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white transition"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Link>
+
+                          <button
+                            onClick={() => {
+                              if (confirm(t('confirm_delete', language))) {
+                                deleteInvoice(inv.id);
+                              }
+                            }}
+                            title={t('delete', language)}
+                            className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-500 hover:text-white transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Payment Recording Modal */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  {language === 'hi' ? 'बिल भुगतान दर्ज करें' : 'Record Invoice Payment'}
+                </h3>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  बिल #{selectedInvoice.invoiceNumber} • {selectedInvoice.party.businessName || selectedInvoice.party.name}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedInvoice(null)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handlePaymentSubmit} className="p-6 space-y-4">
+              {/* Outstanding Info Box */}
+              <div className="bg-slate-50 dark:bg-slate-700/50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-500 block">{language === 'hi' ? 'कुल बिल राशि' : 'Total Bill'}:</span>
+                  <span className="font-bold text-slate-900 dark:text-white text-sm">
+                    {formatIndianCurrency(selectedInvoice.finalAmount)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">{language === 'hi' ? 'बाकी लेना (Pending)' : 'Balance Due'}:</span>
+                  <span className="font-black text-rose-600 text-sm">
+                    {formatIndianCurrency(selectedInvoice.balanceAmount)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    {language === 'hi' ? 'भुगतान राशि (₹ Amount Received)' : 'Amount Received (₹)'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPayAmount(selectedInvoice.balanceAmount)}
+                    className="text-[11px] font-bold text-indigo-600 hover:underline"
+                  >
+                    {language === 'hi' ? 'पूरा भरें (Full Amount)' : 'Fill Full Amount'}
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  max={selectedInvoice.balanceAmount}
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(Number(e.target.value))}
+                  required
+                  className="w-full text-base font-bold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-emerald-500"
+                />
+              </div>
+
+              {/* Payment Mode */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                  {language === 'hi' ? 'भुगतान का माध्यम (Payment Mode)' : 'Payment Mode'}
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(['UPI', 'Cash', 'Bank Transfer', 'Cheque'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setPayMode(mode)}
+                      className={`py-2 px-1 text-xs font-bold rounded-xl border transition text-center ${
+                        payMode === mode
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                      }`}
+                    >
+                      {mode === 'Cash' ? (language === 'hi' ? '💵 नकद' : 'Cash') : mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Deposit Into Account */}
+              {payMode !== 'Cash' && bankAccounts.length > 0 && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                    {language === 'hi' ? 'जमा बैंक खाता (Deposit Bank Account)' : 'Deposit Bank Account'}
+                  </label>
+                  <select
+                    value={selectedBankId}
+                    onChange={(e) => setSelectedBankId(e.target.value)}
+                    className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 focus:outline-emerald-500"
+                  >
+                    {bankAccounts.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.bankName} - A/C: {b.accountNumber.slice(-4).padStart(b.accountNumber.length, '*')} (शेष: ₹{b.currentBalance.toLocaleString('en-IN')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Reference / UTR Number & Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                    {language === 'hi' ? 'रेफरेंस / UTR / चेक नं.' : 'Ref / UTR / Cheque No.'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="उदा. UPI-490219"
+                    value={payRef}
+                    onChange={(e) => setPayRef(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                    {language === 'hi' ? 'भुगतान दिनांक' : 'Payment Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={payDate}
+                    onChange={(e) => setPayDate(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-600"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setSelectedInvoice(null)}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"
+                >
+                  {language === 'hi' ? 'रद्द करें' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {language === 'hi' ? 'जमा करें और चुकता करें' : 'Save & Record Payment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
