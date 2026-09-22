@@ -14,11 +14,20 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const invoiceId = params.id as string;
-  const { invoices, company } = useAppStore();
+  const { invoices, company, isHydrated } = useAppStore();
 
   const [template, setTemplate] = useState<string>(company.invoiceTemplate || 'classic_rathore');
 
   const invoice = invoices.find((inv) => inv.id === invoiceId);
+
+  if (!isHydrated) {
+    return (
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-slate-500 font-medium">बिल लोड हो रहा है...</p>
+      </div>
+    );
+  }
 
   if (!invoice) {
     return (
@@ -28,7 +37,7 @@ export default function InvoiceDetailPage() {
         <p className="text-xs text-slate-500">माफ़ कीजिए, यह बिल मौजूद नहीं है या हटा दिया गया है।</p>
         <Link
           href="/billing"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md"
         >
           <ArrowLeft className="w-4 h-4" />
           बिल सूची पर लौटें

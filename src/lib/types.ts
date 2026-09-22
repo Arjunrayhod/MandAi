@@ -234,6 +234,25 @@ export interface MandiSaudaSlip {
   hammaliAmount: number;
   netPayable: number;
   status: 'pending' | 'billed' | 'settled';
+
+  // Authentic Krishi Upaj Mandi Bhugtan Patrak fields
+  sellerFatherName?: string;
+  village?: string;
+  anubandhNo?: string;
+  tulaiNo?: string;
+  entryPassNo?: string;
+  bhavantar?: string;
+  kisanOpt?: string;
+  aadharNo?: string;
+  bagWeightKg?: number;
+  kattaCount?: number;
+  kattaWeightKg?: number;
+  paymentMode?: string;
+  bankIfsc?: string;
+  bankAccountNo?: string;
+  bankPayAmount?: number;
+  cashPayAmount?: number;
+  isPaid?: boolean;
 }
 
 export interface DashboardMetrics {

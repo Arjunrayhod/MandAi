@@ -1,4 +1,4 @@
-import { CompanyProfile, Party, Product, Invoice, BankAccount, CashTransaction } from './types';
+import { CompanyProfile, Party, Product, Invoice, BankAccount, CashTransaction, MandiSaudaSlip } from './types';
 
 export const DEFAULT_COMPANY: CompanyProfile = {
   id: 'comp-1',
@@ -356,4 +356,35 @@ export const DEFAULT_TRANSACTIONS: CashTransaction[] = [
     description: 'Local tempo charges for Mandi yard delivery',
     createdAt: '2026-09-16T14:20:00Z',
   },
+];
+
+export const DEFAULT_SAUDA_SLIPS: MandiSaudaSlip[] = [
+  {
+    id: 'slip-1',
+    saudaNumber: '0-20340',
+    date: '2026-03-28',
+    partyName: 'KUNDAN',
+    sellerFatherName: 'MUKESH RATHORE',
+    village: 'BISALWASKALA',
+    partyPhone: '9993782187',
+    anubandhNo: '2051/97',
+    commodity: 'ISABGOL',
+    bags: 17,
+    bagWeightKg: 60,
+    kattaCount: 1,
+    kattaWeightKg: 17,
+    netWeightQuintal: 10.370,
+    ratePerQuintal: 12050,
+    totalAmount: 124958.00,
+    katotiAmount: 0,
+    hammaliAmount: 162.00,
+    netPayable: 124796.00,
+    paymentMode: 'NEFT',
+    bankIfsc: 'HDFC0000624',
+    bankAccountNo: '50100757992379',
+    bankPayAmount: 124796.00,
+    cashPayAmount: 0.00,
+    isPaid: true,
+    status: 'settled',
+  }
 ];

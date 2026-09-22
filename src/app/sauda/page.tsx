@@ -16,9 +16,10 @@ import {
   Scale, 
   Receipt,
   X,
-  CheckCircle2,
+  CheckCircle2, 
   Calendar
 } from 'lucide-react';
+import { MandiBhugtanSlip } from '@/components/invoices/MandiBhugtanSlip';
 
 export default function SaudaParchaPage() {
   const router = useRouter();
@@ -28,15 +29,27 @@ export default function SaudaParchaPage() {
   const [selectedSlipForPrint, setSelectedSlipForPrint] = useState<MandiSaudaSlip | null>(null);
 
   // Form State
-  const [partyName, setPartyName] = useState(parties[0]?.businessName || 'M/s Raj And Company');
-  const [partyPhone, setPartyPhone] = useState(parties[0]?.phone || '9826012345');
-  const [commodity, setCommodity] = useState(products[0]?.name || 'Musakadana');
-  const [bags, setBags] = useState<number>(44);
-  const [grossWeightKg, setGrossWeightKg] = useState<number>(2244);
-  const [tareWeightKg, setTareWeightKg] = useState<number>(44); // 1kg per bag tare
-  const [ratePerQuintal, setRatePerQuintal] = useState<number>(21500); // 215/kg = 21500/quintal
-  const [katotiAmount, setKatotiAmount] = useState<number>(1760);
-  const [hammaliAmount, setHammaliAmount] = useState<number>(880); // 20 rs per bag
+  const [partyName, setPartyName] = useState(parties[0]?.businessName || 'KUNDAN');
+  const [sellerFatherName, setSellerFatherName] = useState('MUKESH RATHORE');
+  const [village, setVillage] = useState('BISALWASKALA');
+  const [partyPhone, setPartyPhone] = useState(parties[0]?.phone || '9993782187');
+  const [anubandhNo, setAnubandhNo] = useState('2051/97');
+  const [tulaiNo, setTulaiNo] = useState('');
+  const [entryPassNo, setEntryPassNo] = useState('');
+  const [aadharNo, setAadharNo] = useState('');
+  const [commodity, setCommodity] = useState(products[0]?.name || 'ISABGOL');
+  const [bags, setBags] = useState<number>(17);
+  const [bagWeightKg, setBagWeightKg] = useState<number>(60);
+  const [kattaWeightKg, setKattaWeightKg] = useState<number>(17);
+  const [grossWeightKg, setGrossWeightKg] = useState<number>(1054);
+  const [tareWeightKg, setTareWeightKg] = useState<number>(17); // 1kg per bag tare
+  const [ratePerQuintal, setRatePerQuintal] = useState<number>(12050);
+  const [katotiAmount, setKatotiAmount] = useState<number>(0);
+  const [hammaliAmount, setHammaliAmount] = useState<number>(162);
+  const [paymentMode, setPaymentMode] = useState<string>('NEFT');
+  const [bankIfsc, setBankIfsc] = useState<string>('HDFC0000624');
+  const [bankAccountNo, setBankAccountNo] = useState<string>('50100757992379');
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
   const netWeightKg = Math.max(0, grossWeightKg - tareWeightKg);
   const netWeightQuintal = netWeightKg / 100;
@@ -45,20 +58,34 @@ export default function SaudaParchaPage() {
 
   const handleCreateSlip = (e: React.FormEvent) => {
     e.preventDefault();
-    const saudaNumber = 'SP-' + (saudaSlips.length + 101);
+    const saudaNumber = '0-' + (saudaSlips.length + 20340);
     const newSlip = addSaudaSlip({
       saudaNumber,
       date: new Date().toISOString().split('T')[0],
       partyName,
+      sellerFatherName,
+      village,
       partyPhone,
+      anubandhNo,
+      tulaiNo,
+      entryPassNo,
+      aadharNo,
       commodity,
       bags: Number(bags),
-      netWeightQuintal: Number(netWeightQuintal.toFixed(2)),
+      bagWeightKg: Number(bagWeightKg),
+      kattaWeightKg: Number(kattaWeightKg),
+      netWeightQuintal: Number(netWeightQuintal.toFixed(3)),
       ratePerQuintal: Number(ratePerQuintal),
       totalAmount: Number(grossAmount.toFixed(2)),
       katotiAmount: Number(katotiAmount),
       hammaliAmount: Number(hammaliAmount),
       netPayable: Number(netPayable.toFixed(2)),
+      paymentMode,
+      bankIfsc,
+      bankAccountNo,
+      bankPayAmount: paymentMode === 'Cash' ? 0 : Number(netPayable.toFixed(2)),
+      cashPayAmount: paymentMode === 'Cash' ? Number(netPayable.toFixed(2)) : 0,
+      isPaid: true,
       status: 'pending',
     });
 
@@ -377,6 +404,134 @@ export default function SaudaParchaPage() {
                 </div>
               </div>
 
+              {/* Collapsible Bhugtan Patrak Details */}
+              <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-700/50 text-xs font-bold text-slate-700 dark:text-slate-300"
+                >
+                  <span className="flex items-center gap-1.5">
+                    📜 || भुगतान पत्रक / किसान व बैंक विवरण ||
+                  </span>
+                  <span className="text-[11px] text-indigo-600 dark:text-indigo-400">
+                    {showAdvanced ? 'कम दिखाएं ▲' : 'विवरण भरें ▼'}
+                  </span>
+                </button>
+
+                {showAdvanced && (
+                  <div className="p-3 bg-white dark:bg-slate-800 space-y-3 border-t border-slate-200 dark:border-slate-700 text-xs">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          पिता का नाम (S/O):
+                        </label>
+                        <input
+                          type="text"
+                          value={sellerFatherName}
+                          onChange={(e) => setSellerFatherName(e.target.value)}
+                          placeholder="MUKESH RATHORE"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          गांव / स्थान (Village):
+                        </label>
+                        <input
+                          type="text"
+                          value={village}
+                          onChange={(e) => setVillage(e.target.value)}
+                          placeholder="BISALWASKALA"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          अनुबंध क्र. (Anubandh):
+                        </label>
+                        <input
+                          type="text"
+                          value={anubandhNo}
+                          onChange={(e) => setAnubandhNo(e.target.value)}
+                          placeholder="2051/97"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          तौल क्र. (T.No.):
+                        </label>
+                        <input
+                          type="text"
+                          value={tulaiNo}
+                          onChange={(e) => setTulaiNo(e.target.value)}
+                          placeholder="T-41"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          गेट प्रवेश पर्ची (Entry Pno):
+                        </label>
+                        <input
+                          type="text"
+                          value={entryPassNo}
+                          onChange={(e) => setEntryPassNo(e.target.value)}
+                          placeholder="E-882"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 pt-1 border-t border-slate-100 dark:border-slate-700">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          भुगतान माध्यम (Mode):
+                        </label>
+                        <select
+                          value={paymentMode}
+                          onChange={(e) => setPaymentMode(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs font-bold"
+                        >
+                          <option value="NEFT">NEFT (बैंक)</option>
+                          <option value="Cash">Cash (नकद)</option>
+                          <option value="RTGS">RTGS</option>
+                          <option value="UPI">UPI / PhonePe</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          IFSC कोड:
+                        </label>
+                        <input
+                          type="text"
+                          value={bankIfsc}
+                          onChange={(e) => setBankIfsc(e.target.value)}
+                          placeholder="HDFC0000624"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          बैंक खाता क्र. (A/C No.):
+                        </label>
+                        <input
+                          type="text"
+                          value={bankAccountNo}
+                          onChange={(e) => setBankAccountNo(e.target.value)}
+                          placeholder="50100757992379"
+                          className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Net Payable Summary */}
               <div className="p-4 bg-slate-900 text-white rounded-xl flex items-center justify-between">
                 <div>
@@ -412,75 +567,39 @@ export default function SaudaParchaPage() {
         </div>
       )}
 
-      {/* Print Slip Preview Modal */}
+      {/* Print Slip Preview Modal - Authentic Mandi Bhugtan Patrak */}
       {selectedSlipForPrint && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black p-6 rounded-2xl max-w-sm w-full shadow-2xl border border-slate-400 font-mono text-xs">
-            <div className="text-center pb-2 border-b border-black">
-              <h2 className="font-bold text-sm uppercase">{company.name}</h2>
-              <p className="text-[10px]">{company.city}, {company.state}</p>
-              <h3 className="font-bold text-xs mt-1 bg-amber-100 py-0.5 border border-amber-300 inline-block px-3">
-                {t('sauda_slip_preview_title', language)}
-              </h3>
-            </div>
-
-            <div className="py-2 space-y-1 border-b border-black text-[11px]">
-              <div className="flex justify-between">
-                <span>{t('sauda_slip_no', language)}: <span className="font-bold">{selectedSlipForPrint.saudaNumber}</span></span>
-                <span>{t('date', language)}: {selectedSlipForPrint.date}</span>
-              </div>
-              <p>{t('col_party', language)}: <span className="font-bold">{selectedSlipForPrint.partyName}</span></p>
-              <p>{t('col_commodity', language)}: <span className="font-bold">{selectedSlipForPrint.commodity}</span></p>
-            </div>
-
-            <div className="py-2 space-y-1 border-b border-black text-[11px]">
-              <div className="flex justify-between">
-                <span>{t('bags_count', language)}:</span>
-                <span className="font-bold">{selectedSlipForPrint.bags} {language === 'hi' ? 'बोरी' : language === 'en' ? 'Bags' : 'Bori'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{language === 'hi' ? 'शुद्ध वजन:' : language === 'en' ? 'Net Weight:' : 'Shuddh Vajan:'}</span>
-                <span className="font-bold">{selectedSlipForPrint.netWeightQuintal} {language === 'hi' ? 'क्विंटल' : 'Qtl'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{language === 'hi' ? 'भाव प्रति क्विंटल:' : language === 'en' ? 'Rate per Qtl:' : 'Bhaav Prati Qtl:'}</span>
-                <span className="font-bold">₹{selectedSlipForPrint.ratePerQuintal}</span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span>{t('gross_amount_label', language)}:</span>
-                <span>₹{selectedSlipForPrint.totalAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-rose-600">
-                <span>- {language === 'hi' ? 'कट्ट/कटौती:' : language === 'en' ? 'Katoti / Deductions:' : 'Katoti:'}</span>
-                <span>₹{selectedSlipForPrint.katotiAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-rose-600">
-                <span>- {language === 'hi' ? 'हम्माली व तुलाई:' : language === 'en' ? 'Hammali & Labour:' : 'Hammali & Tulai:'}</span>
-                <span>₹{selectedSlipForPrint.hammaliAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm pt-1 border-t border-black">
-                <span>{language === 'hi' ? 'शुद्ध देय राशि:' : language === 'en' ? 'Net Payable Amount:' : 'Net Deva Rashi:'}</span>
-                <span>{formatIndianCurrency(selectedSlipForPrint.netPayable)}</span>
-              </div>
-            </div>
-
-            <div className="text-center pt-3 text-[10px] space-y-1">
-              <p>{t('auth_sign_label', language)}</p>
-              <div className="h-6"></div>
-              <p className="border-t border-black inline-block px-4">Authorised</p>
-            </div>
-
-            <div className="flex gap-2 pt-4 no-print">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-300 max-h-[92vh] overflow-y-auto flex flex-col items-center p-3 sm:p-5">
+            <div className="w-full flex justify-between items-center pb-2 mb-2 border-b border-gray-200 no-print">
+              <span className="text-xs font-bold text-slate-700">
+                || भुगतान पत्रक प्रपत्र IV 17(4) ||
+              </span>
               <button
                 onClick={() => setSelectedSlipForPrint(null)}
-                className="w-1/2 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold hover:bg-slate-100 transition"
+                className="text-slate-400 hover:text-slate-700 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Authentic Mandi Bhugtan Patrak Component */}
+            <div id="printable-invoice" className="w-full">
+              <MandiBhugtanSlip slip={selectedSlipForPrint} company={company} />
+            </div>
+
+            <div className="flex gap-2 pt-4 w-full no-print">
+              <button
+                onClick={() => setSelectedSlipForPrint(null)}
+                className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
               >
                 {t('btn_close', language)}
               </button>
               <button
                 onClick={() => window.print()}
-                className="w-1/2 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition"
+                className="w-1/2 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
+                <Printer className="w-4 h-4" />
                 {t('btn_print_slip', language)}
               </button>
             </div>

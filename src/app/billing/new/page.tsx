@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { InvoiceItem, DocumentType } from '@/lib/types';
@@ -22,37 +22,91 @@ import {
   PackageCheck,
   RotateCcw,
   Printer,
-  Landmark
+  Landmark,
+  AlertCircle,
+  Edit3
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const { invoices, company, parties, products, bankAccounts, addInvoice, addParty, addProduct, language } = useAppStore();
+  const { 
+    currentUser, 
+    invoices, 
+    company, 
+    parties, 
+    products, 
+    bankAccounts, 
+    addInvoice, 
+    addParty, 
+    addProduct, 
+    addBankAccount, 
+    updateBankAccount, 
+    updateCompany, 
+    language 
+  } = useAppStore();
 
+  const isDemo = !!currentUser?.isDemo;
   const todayStr = new Date().toISOString().split('T')[0];
   const dueDefault = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
 
   const defaultBank = bankAccounts?.find((b) => b.isDefault) || bankAccounts?.[0];
   const [selectedBankId, setSelectedBankId] = useState<string>(defaultBank?.id || '');
-  const activeBankPreview = bankAccounts?.find((b) => b.id === selectedBankId) || defaultBank;
+
+  // Keep selectedBankId synced if it was empty and banks become available
+  useEffect(() => {
+    if (!selectedBankId && defaultBank?.id) {
+      setSelectedBankId(defaultBank.id);
+    }
+  }, [defaultBank, selectedBankId]);
+
+  const activeBankPreview = (selectedBankId ? bankAccounts?.find((b) => b.id === selectedBankId) : null) || defaultBank;
+  const chosenBank = activeBankPreview;
+  const invoiceBankDetails = chosenBank ? {
+    bankName: chosenBank.bankName,
+    branch: chosenBank.branch,
+    accountName: chosenBank.accountName,
+    accountNumber: chosenBank.accountNumber,
+    ifsc: chosenBank.ifsc,
+    upiId: chosenBank.upiId,
+  } : company.bankDetails;
+
+  const isBankDetailsValid = Boolean(
+    invoiceBankDetails &&
+    invoiceBankDetails.bankName?.trim() &&
+    invoiceBankDetails.accountNumber?.trim() &&
+    invoiceBankDetails.ifsc?.trim()
+  );
 
   const [docType, setDocType] = useState<DocumentType>('tax_invoice');
-  const [invoiceNumber, setInvoiceNumber] = useState<string>(String(company.invoiceNextNumber || 170));
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(String(company.invoiceNextNumber || (isDemo ? 170 : 1)));
   const [invoiceDate, setInvoiceDate] = useState<string>(todayStr);
   const [dueDate, setDueDate] = useState<string>(dueDefault);
   const [selectedPartyId, setSelectedPartyId] = useState<string>(parties[0]?.id || '');
   
   const [billingAddress, setBillingAddress] = useState<string>(parties[0]?.billingAddress || '');
-  const [placeOfSupply, setPlaceOfSupply] = useState<string>(`${parties[0]?.state || 'Madhya Pradesh'} ( ${parties[0]?.stateCode || '23'} )`);
+  const [placeOfSupply, setPlaceOfSupply] = useState<string>(`${parties[0]?.state || company.state || 'Madhya Pradesh'} ( ${parties[0]?.stateCode || company.stateCode || '23'} )`);
   const [isInterState, setIsInterState] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (parties.length > 0 && !selectedPartyId) {
+      handlePartySelect(parties[0].id);
+    }
+  }, [parties, selectedPartyId]);
+
+  useEffect(() => {
+    if (bankAccounts.length > 0 && !selectedBankId) {
+      const def = bankAccounts.find((b) => b.isDefault) || bankAccounts[0];
+      if (def) setSelectedBankId(def.id);
+    }
+  }, [bankAccounts, selectedBankId]);
 
   const docMeta = getDocumentMeta(docType, language);
 
   const handleDocTypeChange = (newType: DocumentType) => {
     setDocType(newType);
     if (newType === 'tax_invoice') {
-      setInvoiceNumber(String(company.invoiceNextNumber || 170));
+      setInvoiceNumber(String(company.invoiceNextNumber || (isDemo ? 170 : 1)));
     } else if (newType === 'quotation_estimate') {
       const existingQuotes = invoices.filter((inv) => inv.docType === 'quotation_estimate').length;
       setInvoiceNumber(`EST-${101 + existingQuotes}`);
@@ -66,11 +120,11 @@ export default function CreateInvoicePage() {
   };
   
   // GoGST Transport & E-Way fields
-  const [vehicleNo, setVehicleNo] = useState<string>('MP 44 GA 8819');
+  const [vehicleNo, setVehicleNo] = useState<string>(isDemo ? 'MP 44 GA 8819' : '');
   const [biltyNo, setBiltyNo] = useState<string>('');
-  const [transporterName, setTransporterName] = useState<string>('Neemuch Roadways Carrier');
+  const [transporterName, setTransporterName] = useState<string>(isDemo ? 'Neemuch Roadways Carrier' : '');
   const [transporterId, setTransporterId] = useState<string>('');
-  const [distanceKm, setDistanceKm] = useState<number>(120);
+  const [distanceKm, setDistanceKm] = useState<number>(isDemo ? 120 : 0);
   const [stationTo, setStationTo] = useState<string>('');
 
   // Quick Add Party Modal State
@@ -109,34 +163,79 @@ export default function CreateInvoicePage() {
     mandiBagWeightKg: 50,
   });
 
-  // Items
-  const [items, setItems] = useState<InvoiceItem[]>([
-    {
-      id: 'item-1',
-      productId: products[0]?.id || '',
-      name: products[0]?.name || 'Musakadana',
-      hsnSac: products[0]?.hsnSac || '12119011',
-      qty: 2200,
-      unit: 'Kg',
-      bags: 44,
-      rate: 215,
-      ratePer: 'Kg',
-      taxableValue: 473000,
-      cgstPercent: 2.5,
-      cgstAmount: 11825,
-      sgstPercent: 2.5,
-      sgstAmount: 11825,
-      igstPercent: 0,
-      igstAmount: 0,
-      total: 496650,
-    }
-  ]);
+  // Quick Bank Modal State (Live Edit & Add)
+  const [showQuickBankModal, setShowQuickBankModal] = useState(false);
+  const [bankModalMode, setBankModalMode] = useState<'edit' | 'add'>('edit');
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [bankFormData, setBankFormData] = useState({
+    bankName: company.bankDetails?.bankName || '',
+    accountName: company.bankDetails?.accountName || company.name || '',
+    accountNumber: company.bankDetails?.accountNumber || '',
+    ifsc: company.bankDetails?.ifsc || '',
+    branch: company.bankDetails?.branch || company.city || '',
+    upiId: company.bankDetails?.upiId || '',
+  });
+
+  const handleOpenEditBank = (bankToEdit?: any) => {
+    const b = bankToEdit || activeBankPreview;
+    setBankModalMode('edit');
+    setEditingBankId(b?.id || null);
+    setBankFormData({
+      bankName: b?.bankName || company.bankDetails?.bankName || '',
+      accountName: b?.accountName || company.bankDetails?.accountName || company.name || '',
+      accountNumber: b?.accountNumber || company.bankDetails?.accountNumber || '',
+      ifsc: b?.ifsc || company.bankDetails?.ifsc || '',
+      branch: b?.branch || company.bankDetails?.branch || company.city || '',
+      upiId: b?.upiId || '',
+    });
+    setShowQuickBankModal(true);
+  };
+
+  const handleOpenAddBank = () => {
+    setBankModalMode('add');
+    setEditingBankId(null);
+    setBankFormData({
+      bankName: '',
+      accountName: company.bankDetails?.accountName || company.name || '',
+      accountNumber: '',
+      ifsc: '',
+      branch: company.bankDetails?.branch || company.city || '',
+      upiId: '',
+    });
+    setShowQuickBankModal(true);
+  };
+
+  // Items: Clean empty for real users, pre-filled for demo
+  const [items, setItems] = useState<InvoiceItem[]>(() => {
+    if (!isDemo) return [];
+    return [
+      {
+        id: 'item-1',
+        productId: products[0]?.id || '',
+        name: products[0]?.name || 'Musakadana',
+        hsnSac: products[0]?.hsnSac || '12119011',
+        qty: 2200,
+        unit: 'Kg',
+        bags: 44,
+        rate: 215,
+        ratePer: 'Kg',
+        taxableValue: 473000,
+        cgstPercent: 2.5,
+        cgstAmount: 11825,
+        sgstPercent: 2.5,
+        sgstAmount: 11825,
+        igstPercent: 0,
+        igstAmount: 0,
+        total: 496650,
+      }
+    ];
+  });
 
   // Extra Mandi charges
-  const [transportCharges, setTransportCharges] = useState<number>(500);
+  const [transportCharges, setTransportCharges] = useState<number>(isDemo ? 500 : 0);
   const [hammaliCharges, setHammaliCharges] = useState<number>(0);
   const [tulaiCharges, setTulaiCharges] = useState<number>(0);
-  const [katotiCharges, setKatotiCharges] = useState<number>(1760);
+  const [katotiCharges, setKatotiCharges] = useState<number>(isDemo ? 1760 : 0);
   const [otherCharges, setOtherCharges] = useState<number>(0);
   const [otherChargesLabel, setOtherChargesLabel] = useState<string>('Custom Surcharge');
   const [notes, setNotes] = useState<string>('');
@@ -230,6 +329,49 @@ export default function CreateInvoicePage() {
     ]);
 
     setShowQuickProdModal(false);
+  };
+
+  const handleSaveQuickBank = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bankFormData.bankName.trim() || !bankFormData.accountNumber.trim() || !bankFormData.ifsc.trim()) {
+      alert(language === 'hi' ? 'कृपया बैंक का नाम, खाता संख्या (A/C No.) और IFSC कोड अवश्य भरें।' : 'Please fill Bank Name, Account Number and IFSC.');
+      return;
+    }
+
+    const payload = {
+      bankName: bankFormData.bankName.trim(),
+      accountName: bankFormData.accountName.trim() || company.bankDetails?.accountName || company.name || 'व्यापारी',
+      accountNumber: bankFormData.accountNumber.trim(),
+      ifsc: bankFormData.ifsc.trim().toUpperCase(),
+      branch: bankFormData.branch.trim() || company.city || '',
+      upiId: bankFormData.upiId.trim(),
+    };
+
+    if (bankModalMode === 'edit' && editingBankId) {
+      // Live update existing bank account
+      updateBankAccount(editingBankId, payload);
+      setSelectedBankId(editingBankId);
+    } else {
+      // Add new bank account and select it
+      const created = addBankAccount({
+        ...payload,
+        openingBalance: 0,
+        currentBalance: 0,
+        isDefault: bankAccounts.length === 0,
+      });
+      if (created?.id) {
+        setSelectedBankId(created.id);
+      }
+    }
+
+    // Keep company bank details in sync
+    updateCompany({
+      bankDetails: {
+        ...payload,
+      },
+    });
+
+    setShowQuickBankModal(false);
   };
 
   const handleProductSelect = (index: number, productId: string) => {
@@ -359,7 +501,24 @@ export default function CreateInvoicePage() {
       alert(language === 'hi' ? 'कृपया बिल बनाने के लिए कम से कम 1 जिंस / आइटम जोड़ें।' : language === 'en' ? 'Please add at least 1 commodity / item row to create bill.' : 'Kripya kam se kam 1 item row jodein.');
       return;
     }
-    const party = parties.find((p) => p.id === selectedPartyId) || parties[0];
+    let party = parties.find((p) => p.id === selectedPartyId) || parties[0];
+    if (!party) {
+      party = addParty({
+        name: 'नकद ग्राहक (Cash Customer)',
+        businessName: 'नकद मंडी खरीदार',
+        type: 'customer',
+        phone: '',
+        billingAddress: company.city ? `${company.city}, ${company.state}` : 'मंडी प्रांगण',
+        city: company.city || 'Neemuch',
+        state: company.state || 'Madhya Pradesh',
+        stateCode: company.stateCode || '23',
+        pincode: company.pincode || '',
+        openingBalance: 0,
+        balanceType: 'to_receive',
+        paymentTermsDays: 15,
+      });
+      setSelectedPartyId(party.id);
+    }
 
     const chosenBank = bankAccounts?.find((b) => b.id === selectedBankId) || defaultBank;
     const invoiceBankDetails = chosenBank ? {
@@ -371,15 +530,38 @@ export default function CreateInvoicePage() {
       upiId: chosenBank.upiId,
     } : company.bankDetails;
 
+    // MANDATORY BANK DETAILS CHECK
+    const hasBankName = Boolean(invoiceBankDetails?.bankName?.trim());
+    const hasAccountNo = Boolean(invoiceBankDetails?.accountNumber?.trim());
+    const hasIfsc = Boolean(invoiceBankDetails?.ifsc?.trim());
+
+    if (!hasBankName || !hasAccountNo || !hasIfsc) {
+      alert(
+        language === 'hi'
+          ? '❌ बैंक विवरण (Bank Details) अनिवार्य है!\n\nकृपया बिल बनाने से पहले बैंक का नाम, खाता संख्या (A/C No.) और IFSC कोड दर्ज करें। इसके बिना बिल आगे प्रोसेस नहीं होगा।'
+          : '❌ Bank Details are mandatory on invoices!\n\nPlease enter Bank Name, Account Number, and IFSC code before proceeding.'
+      );
+      setBankFormData({
+        bankName: company.bankDetails?.bankName || '',
+        accountName: company.bankDetails?.accountName || company.name || '',
+        accountNumber: company.bankDetails?.accountNumber || '',
+        ifsc: company.bankDetails?.ifsc || '',
+        branch: company.bankDetails?.branch || company.city || '',
+        upiId: company.bankDetails?.upiId || '',
+      });
+      setShowQuickBankModal(true);
+      return;
+    }
+
     const newInvoice = addInvoice({
       docType,
-      invoiceNumber: invoiceNumber.trim(),
+      invoiceNumber: invoiceNumber.trim() || String(company.invoiceNextNumber || 1),
       invoiceDate,
       dueDate,
       partyId: party.id,
       party,
-      billingAddress,
-      placeOfSupply,
+      billingAddress: billingAddress || party.billingAddress || `${company.city || 'Neemuch'}, ${company.state || 'Madhya Pradesh'}`,
+      placeOfSupply: placeOfSupply || `${party.state || company.state || 'Madhya Pradesh'} ( ${party.stateCode || company.stateCode || '23'} )`,
       isInterState,
       vehicleNo,
       biltyNo,
@@ -554,11 +736,15 @@ export default function CreateInvoicePage() {
                   onChange={(e) => handlePartySelect(e.target.value)}
                   className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
                 >
-                  {parties.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.businessName || p.name} ({p.city}) {p.mandiShopNo ? `[${p.mandiShopNo}]` : ''}
-                    </option>
-                  ))}
+                  {parties.length === 0 ? (
+                    <option value="">-- नकद ग्राहक (Cash Customer) --</option>
+                  ) : (
+                    parties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.businessName || p.name} ({p.city}) {p.mandiShopNo ? `[${p.mandiShopNo}]` : ''}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
@@ -645,21 +831,66 @@ export default function CreateInvoicePage() {
             </div>
           </div>
 
-          {/* Bank Account Selection Card for Bill */}
-          <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
-                <Landmark className="w-4 h-4 text-indigo-600" />
-                {language === 'hi' ? 'बिल पर प्रिंट हेतु बैंक खाता एवं QR कोड (Select Bank Account for Bill)' : 'Bank Account & UPI QR for Invoice'}
-              </h3>
-              <Link 
-                href="/money" 
-                target="_blank"
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg transition"
-              >
-                + {language === 'hi' ? 'नया बैंक खाता जोड़ें' : 'Manage Bank Accounts'}
-              </Link>
+          {/* Bank Account Selection Card for Bill (Mandatory Requirement) */}
+          <div className={`p-4 sm:p-5 rounded-2xl border shadow-xs space-y-3 transition ${
+            isBankDetailsValid 
+              ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' 
+              : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-300 dark:border-rose-700 ring-2 ring-rose-400/20'
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase text-indigo-600 tracking-wider flex items-center gap-1.5">
+                  <Landmark className="w-4 h-4 text-indigo-600" />
+                  {language === 'hi' ? 'बिल पर प्रिंट हेतु बैंक खाता एवं QR कोड' : 'Bank Account & UPI QR for Invoice'}
+                </h3>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                  isBankDetailsValid
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300'
+                    : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border-rose-300 animate-pulse'
+                }`}>
+                  * {language === 'hi' ? (isBankDetailsValid ? 'अनिवार्य (पूर्ण ✓)' : 'अनिवार्य (आवश्यक !)') : 'Mandatory *'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {activeBankPreview && activeBankPreview.accountNumber && (
+                  <button 
+                    type="button"
+                    onClick={() => handleOpenEditBank(activeBankPreview)}
+                    className="text-[11px] font-bold text-amber-700 hover:text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 border border-amber-200 dark:border-amber-800 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5"
+                    title="इस बैंक के विवरण में बदलाव करें"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    {language === 'hi' ? 'यह बैंक विवरण बदलें (Edit)' : 'Edit This Bank'}
+                  </button>
+                )}
+                <button 
+                  type="button"
+                  onClick={handleOpenAddBank}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {language === 'hi' ? '+ नया बैंक जोड़ें' : '+ Add New Bank'}
+                </button>
+              </div>
             </div>
+
+            {!isBankDetailsValid && (
+              <div className="p-3 rounded-xl bg-rose-100/80 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>
+                    <strong>बैंक विवरण अधूरा है:</strong> बिल बनाने के लिए बैंक का नाम, खाता संख्या (A/C No.) और IFSC कोड अनिवार्य है। इसके बिना बिल आगे प्रोसेस नहीं होगा।
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditBank(activeBankPreview)}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xs transition shrink-0"
+                >
+                  + बैंक डिटेल्स भरें
+                </button>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
               <div>
@@ -671,35 +902,68 @@ export default function CreateInvoicePage() {
                   onChange={(e) => setSelectedBankId(e.target.value)}
                   className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5"
                 >
-                  {bankAccounts.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.bankName} - {b.accountNumber} ({b.accountName}) {b.isDefault ? '⭐ [मुख्य / Primary]' : ''}
+                  {bankAccounts.length === 0 ? (
+                    <option value="">
+                      {company.bankDetails?.bankName ? `${company.bankDetails.bankName} - ${company.bankDetails.accountNumber}` : '-- कोई बैंक नहीं (ऊपर से जोड़ें) --'}
                     </option>
-                  ))}
+                  ) : (
+                    bankAccounts.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.bankName} - {b.accountNumber} ({b.accountName}) {b.isDefault ? '⭐ [मुख्य / Primary]' : ''}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
-              {/* Selected Bank Preview Pill */}
-              {activeBankPreview ? (
-                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-300 flex justify-between items-center">
-                  <div className="space-y-0.5">
-                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              {/* Selected Bank Preview Pill with Real-time Edit Button */}
+              {activeBankPreview && activeBankPreview.accountNumber ? (
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-300 flex justify-between items-center gap-2">
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
                       <span>{activeBankPreview.bankName}</span>
-                      <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                      <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded font-mono font-bold shrink-0">
                         IFSC: {activeBankPreview.ifsc}
                       </span>
                     </p>
-                    <p className="text-[11px] text-slate-500 font-mono">
-                      A/C: {activeBankPreview.accountNumber} • UPI: {activeBankPreview.upiId}
+                    <p className="text-[11px] text-slate-500 font-mono truncate">
+                      A/C: {activeBankPreview.accountNumber} {activeBankPreview.upiId?.trim() ? `• UPI: ${activeBankPreview.upiId.trim()}` : '• (कोई UPI नहीं)'}
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded-lg shrink-0">
-                    ✓ QR Enabled
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditBank(activeBankPreview)}
+                      className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 rounded-lg transition flex items-center gap-1"
+                      title="लाइव बदलाव करें"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      {language === 'hi' ? 'सुधारें' : 'Edit'}
+                    </button>
+                    {activeBankPreview.upiId?.trim() ? (
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/50 px-2 py-1 rounded-lg shrink-0" title="QR कोड बिल पर प्रिंट होगा">
+                        ✓ QR चालू
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg shrink-0" title="QR कोड बिल पर प्रिंट नहीं होगा">
+                        QR बंद
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-500">
-                  {company.bankDetails?.bankName} ({company.bankDetails?.accountNumber})
+                <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-xl p-2.5 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>कोई बैंक खाता लिंक नहीं है।</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddBank}
+                    className="px-2.5 py-1 text-[11px] font-bold text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200"
+                  >
+                    + नया जोड़ें
+                  </button>
                 </div>
               )}
             </div>
@@ -1510,6 +1774,151 @@ export default function CreateInvoicePage() {
                 className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-md transition"
               >
                 जिंस जोड़ें व बिल में डालें (Add & Insert Row)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add / Edit Bank Modal (Mandatory Requirement for Invoices) */}
+      {showQuickBankModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                  <Landmark className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>
+                      {bankModalMode === 'edit' 
+                        ? (language === 'hi' ? '✏️ बैंक खाता विवरण सुधारें (Live Edit)' : '✏️ Edit Bank Details (Live)')
+                        : (language === 'hi' ? '+ नया बैंक खाता जोड़ें' : '+ Add New Bank Account')}
+                    </span>
+                    <span className="text-[10px] bg-rose-100 text-rose-700 font-black px-2 py-0.5 rounded-full">
+                      * अनिवार्य
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {bankModalMode === 'edit'
+                      ? (language === 'hi' ? 'यहाँ किया गया बदलाव बिल और QR कोड में तुरंत लाइव अपडेट हो जाएगा।' : 'Changes made here will instantly update this bill and preview.')
+                      : (language === 'hi' ? 'नया बैंक खाता सेव होकर बिल में तुरंत इस्तेमाल होगा।' : 'This bank account will be saved and used for this bill.')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuickBankModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    बैंक का नाम (Bank Name) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. HDFC Bank, SBI, PNB"
+                    value={bankFormData.bankName}
+                    onChange={(e) => setBankFormData({ ...bankFormData, bankName: e.target.value })}
+                    className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    खाताधारक / फर्म का नाम *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. PRO RATHORE TRADING"
+                    value={bankFormData.accountName}
+                    onChange={(e) => setBankFormData({ ...bankFormData, accountName: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    खाता संख्या (Account Number) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. 50200098211151"
+                    value={bankFormData.accountNumber}
+                    onChange={(e) => setBankFormData({ ...bankFormData, accountNumber: e.target.value })}
+                    className="w-full text-xs font-mono font-bold bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    IFSC कोड (IFSC Code) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. HDFC0000624"
+                    value={bankFormData.ifsc}
+                    onChange={(e) => setBankFormData({ ...bankFormData, ifsc: e.target.value.toUpperCase() })}
+                    className="w-full text-xs font-mono font-bold uppercase bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    शाखा / Branch (वैकल्पिक)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="उदा. Neemuch Mandi"
+                    value={bankFormData.branch}
+                    onChange={(e) => setBankFormData({ ...bankFormData, branch: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    UPI ID (QR कोड हेतु - वैकल्पिक)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="उदा. 7024537491@ybl"
+                    value={bankFormData.upiId}
+                    onChange={(e) => setBankFormData({ ...bankFormData, upiId: e.target.value })}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setShowQuickBankModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                रद्द करें (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveQuickBank}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition"
+              >
+                {bankModalMode === 'edit'
+                  ? (language === 'hi' ? 'बदलाव सुरक्षित करें (Update Live)' : 'Update Bank Live')
+                  : (language === 'hi' ? 'सुरक्षित करें व बिल में जोड़ें' : 'Save & Use for Bill')}
               </button>
             </div>
           </div>

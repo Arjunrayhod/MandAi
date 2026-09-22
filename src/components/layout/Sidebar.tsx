@@ -14,14 +14,16 @@ import {
   PlusCircle,
   Wheat,
   Scale,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/translations';
+import { MandAiLogo } from '@/components/common/MandAiLogo';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { company, language, mobileSidebarOpen, setMobileSidebarOpen } = useAppStore();
+  const { company, language, mobileSidebarOpen, setMobileSidebarOpen, currentUser, logout } = useAppStore();
 
   const navItems = [
     { href: '/', label: getTranslation('nav_dashboard', language), icon: LayoutDashboard },
@@ -46,9 +48,7 @@ export const Sidebar: React.FC = () => {
               className="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-700 shadow-md shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shrink-0">
-              <Wheat className="w-6 h-6" />
-            </div>
+            <MandAiLogo size={40} animated />
           )}
           <div className="overflow-hidden min-w-0">
             <h2 className="text-sm font-bold text-white truncate tracking-tight">
@@ -107,27 +107,44 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Bottom Profile Info */}
-      <div className="p-4 border-t border-slate-800 text-[11px] bg-slate-950/40">
-        <div className="flex items-center justify-between gap-2.5">
+      {/* Bottom Profile Info & Logout Button */}
+      <div className="p-3.5 border-t border-slate-800 text-[11px] bg-slate-950/50">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             {company.logoUrl ? (
               <img
                 src={company.logoUrl}
-                alt={company.ownerName}
+                alt={currentUser?.name || company.ownerName}
                 className="w-8 h-8 rounded-full object-cover bg-white border border-slate-700 shrink-0"
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                {(company.ownerName || company.name || 'M')[0].toUpperCase()}
+                {(currentUser?.name || company.ownerName || company.name || 'M')[0].toUpperCase()}
               </div>
             )}
             <div className="overflow-hidden">
-              <p className="font-bold text-white truncate">{company.ownerName || 'Kundan Rathore'}</p>
-              <p className="text-slate-500 text-[10px] truncate">{company.city}, {company.state}</p>
+              <p className="font-bold text-white truncate text-xs">
+                {currentUser?.name || company.ownerName || 'व्यापारी'}
+              </p>
+              <p className="text-slate-400 text-[10px] truncate">
+                {currentUser?.isDemo ? '🌾 डेमो अकाउंट' : `@${currentUser?.username || 'user'}`}
+              </p>
             </div>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 shrink-0"></span>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('क्या आप सचमुच लॉगआउट (Logout) करना चाहते हैं?')) {
+                logout();
+              }
+            }}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition shrink-0"
+            title="लॉगआउट करें (Log Out)"
+            aria-label="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

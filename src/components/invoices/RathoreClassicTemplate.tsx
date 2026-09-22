@@ -341,44 +341,48 @@ export const RathoreClassicTemplate: React.FC<InvoiceTemplateProps> = ({ invoice
           {/* Bank Details & QR */}
           <div className="border-b border-black">
             <div className="bg-[#f0f9ff] text-center font-bold py-1 border-b border-black text-[11px] uppercase tracking-wide">
-              Bank Details & Online Payment
+              {activeBank?.upiId?.trim() ? 'Bank Details & Online Payment' : 'Bank Details'}
             </div>
             <div className="p-3 flex items-center justify-between gap-4">
               <div className="flex-1 space-y-1.5 text-[11px] text-gray-900 leading-tight">
                 <div className="flex items-baseline">
                   <span className="font-bold text-black w-24 shrink-0">Bank Name :</span>
-                  <span className="font-extrabold text-black text-[11.5px]">{activeBank?.bankName || 'HDFC Bank'}</span>
+                  <span className="font-extrabold text-black text-[11.5px]">{activeBank?.bankName || company.bankDetails?.bankName}</span>
                 </div>
                 <div className="flex items-baseline">
                   <span className="font-bold text-black w-24 shrink-0">Branch :</span>
-                  <span className="font-semibold text-gray-900">{activeBank?.branch || 'Vijay talkies compound neemuch 458441'}</span>
+                  <span className="font-semibold text-gray-900">{activeBank?.branch || company.bankDetails?.branch || company.city}</span>
                 </div>
                 <div className="flex items-baseline">
                   <span className="font-bold text-black w-24 shrink-0">Acc. Name :</span>
-                  <span className="font-extrabold text-black uppercase">{activeBank?.accountName || 'PRO RATHORE TRADING COMPANY'}</span>
+                  <span className="font-extrabold text-black uppercase">{activeBank?.accountName || company.bankDetails?.accountName || company.name}</span>
                 </div>
                 <div className="flex items-baseline">
                   <span className="font-bold text-black w-24 shrink-0">Acc. Number :</span>
-                  <span className="font-black font-mono text-black text-xs tracking-wider">{activeBank?.accountNumber || '50200098211151'}</span>
+                  <span className="font-black font-mono text-black text-xs tracking-wider">{activeBank?.accountNumber || company.bankDetails?.accountNumber}</span>
                 </div>
                 <div className="flex items-baseline">
                   <span className="font-bold text-black w-24 shrink-0">IFSC :</span>
-                  <span className="font-mono font-black text-black">{activeBank?.ifsc || 'HDFC0000624'}</span>
+                  <span className="font-mono font-black text-black">{activeBank?.ifsc || company.bankDetails?.ifsc}</span>
                 </div>
-                <div className="flex items-baseline">
-                  <span className="font-bold text-black w-24 shrink-0">UPI ID :</span>
-                  <span className="text-indigo-800 font-mono font-black text-[11.5px]">{activeBank?.upiId || '7024537491@ybl'}</span>
+                {activeBank?.upiId?.trim() ? (
+                  <div className="flex items-baseline">
+                    <span className="font-bold text-black w-24 shrink-0">UPI ID :</span>
+                    <span className="text-indigo-800 font-mono font-black text-[11.5px]">{activeBank.upiId.trim()}</span>
+                  </div>
+                ) : null}
+              </div>
+              {activeBank?.upiId?.trim() ? (
+                <div className="shrink-0 flex justify-center">
+                  <UpiQrCode
+                    upiId={activeBank.upiId.trim()}
+                    accountName={activeBank?.accountName || company.name || 'Merchant'}
+                    amount={invoice.finalAmount}
+                    invoiceNumber={invoice.invoiceNumber}
+                    size={85}
+                  />
                 </div>
-              </div>
-              <div className="shrink-0 flex justify-center">
-                <UpiQrCode
-                  upiId={activeBank?.upiId || '7024537491@ybl'}
-                  accountName={activeBank?.accountName || 'PRO RATHORE TRADING COMPANY'}
-                  amount={invoice.finalAmount}
-                  invoiceNumber={invoice.invoiceNumber}
-                  size={85}
-                />
-              </div>
+              ) : null}
             </div>
           </div>
 

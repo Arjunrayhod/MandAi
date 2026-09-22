@@ -18,7 +18,7 @@ export const UpiQrCode: React.FC<UpiQrCodeProps> = ({
   invoiceNumber,
   size = 85,
 }) => {
-  if (!upiId) return null;
+  if (!upiId || !upiId.trim()) return null;
 
   // Clean and encode parameters for 100% universal UPI compatibility across all apps (GPay, PhonePe, Paytm, BHIM, Navi)
   const cleanUpi = upiId.trim();

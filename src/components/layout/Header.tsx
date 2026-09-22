@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { Language, getTranslation } from '@/lib/translations';
-import { Store, ReceiptText, Bell, Globe, Wifi, WifiOff, Menu } from 'lucide-react';
+import { Store, ReceiptText, Bell, Globe, Wifi, WifiOff, Menu, LogOut, User, Zap } from 'lucide-react';
+import { MandAiLogo } from '@/components/common/MandAiLogo';
 
 export const Header: React.FC = () => {
-  const { company, getMetrics, language, setLanguage, toggleMobileSidebar } = useAppStore();
+  const { company, getMetrics, language, setLanguage, toggleMobileSidebar, currentUser, logout } = useAppStore();
   const metrics = getMetrics();
   const [isOnline, setIsOnline] = useState<boolean>(true);
 
@@ -47,12 +48,21 @@ export const Header: React.FC = () => {
               className="w-5 h-5 rounded-md object-contain bg-white p-0.5 border border-slate-200 dark:border-slate-700 shrink-0"
             />
           ) : (
-            <Store className="w-4 h-4 text-indigo-600 shrink-0" />
+            <MandAiLogo size={22} showSparkle={false} />
           )}
-          <span className="font-bold truncate max-w-[150px] sm:max-w-[220px]">{company.name}</span>
-          <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono px-1.5 py-0.5 rounded-md hidden sm:inline-block">
-            GST: {company.gstin}
-          </span>
+          <span className="font-bold truncate max-w-[130px] sm:max-w-[200px]">{company.name}</span>
+          {currentUser?.isDemo ? (
+            <span className="text-[10px] bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
+              <Zap className="w-2.5 h-2.5 text-amber-600" />
+              डेमो मोड
+            </span>
+          ) : (
+            company.gstin && (
+              <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono px-1.5 py-0.5 rounded-md hidden sm:inline-block">
+                GST: {company.gstin}
+              </span>
+            )
+          )}
         </div>
 
         {/* Offline / Local Storage Badge */}
@@ -80,16 +90,16 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Actions & Language Switcher */}
+      {/* Right Actions & Language Switcher & Logout */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* 3-Language Selector */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+        <div className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
           <Globe className="w-3.5 h-3.5 text-slate-400 ml-1.5" />
           {(['hi', 'en', 'hinglish'] as Language[]).map((lang) => (
             <button
               key={lang}
               onClick={() => setLanguage(lang)}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+              className={`px-2 py-1 rounded-lg font-bold text-[11px] transition ${
                 language === lang
                   ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
@@ -117,6 +127,33 @@ export const Header: React.FC = () => {
           <ReceiptText className="w-4 h-4" />
           <span>{getTranslation('new_bill_btn', language)}</span>
         </Link>
+
+        {/* User Account & Logout Button */}
+        {currentUser ? (
+          <div className="flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('क्या आप सचमुच लॉगआउट (Logout) करना चाहते हैं?')) {
+                  logout();
+                }
+              }}
+              className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold text-xs px-2.5 py-1.5 rounded-xl transition"
+              title="अकाउंट से बाहर आएं / लॉगआउट करें"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">लॉगआउट</span>
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold text-xs px-3 py-1.5 rounded-xl transition"
+          >
+            <User className="w-3.5 h-3.5" />
+            लॉगिन
+          </Link>
+        )}
       </div>
     </header>
   );
