@@ -217,6 +217,23 @@ const getUserSavedState = (userId: string, isDemo?: boolean) => {
   }
 };
 
+let neonSyncTimer: any = null;
+const queueNeonSync = (userId: string, data: any) => {
+  if (typeof window === 'undefined') return;
+  if (neonSyncTimer) clearTimeout(neonSyncTimer);
+  neonSyncTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/db/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, data }),
+      });
+    } catch (e) {
+      console.warn('Neon cloud backup failed to sync', e);
+    }
+  }, 1000);
+};
+
 const syncUserToStorage = (state: any, userId?: string) => {
   if (typeof window === 'undefined') return;
   const targetId = userId || state.currentUser?.id || DEMO_USER.id;
@@ -240,6 +257,11 @@ const syncUserToStorage = (state: any, userId?: string) => {
     }
   } catch (e) {
     console.error('Failed to sync user storage', e);
+  }
+
+  // Neon PostgreSQL Permanent Cloud Backup (Never deletes after 24 hrs)
+  if (targetId && targetId !== DEMO_USER.id) {
+    queueNeonSync(targetId, data);
   }
 };
 
@@ -285,6 +307,39 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...userData,
       isHydrated: true,
     });
+
+    // Background sync from Neon PostgreSQL cloud storage
+    if (!user.isDemo) {
+      fetch(`/api/db/sync?userId=${encodeURIComponent(user.id)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((json) => {
+          if (json?.success && json?.data) {
+            set((current) => {
+              if (current.currentUser?.id === user.id) {
+                const cloud = json.data;
+                const nextState = {
+                  ...current,
+                  company: cloud.company || current.company,
+                  parties: Array.isArray(cloud.parties) ? cloud.parties : current.parties,
+                  products: Array.isArray(cloud.products) ? cloud.products : current.products,
+                  invoices: Array.isArray(cloud.invoices) ? cloud.invoices : current.invoices,
+                  bankAccounts: Array.isArray(cloud.bankAccounts) ? cloud.bankAccounts : current.bankAccounts,
+                  transactions: Array.isArray(cloud.transactions) ? cloud.transactions : current.transactions,
+                  payments: Array.isArray(cloud.payments) ? cloud.payments : current.payments,
+                  saudaSlips: Array.isArray(cloud.saudaSlips) ? cloud.saudaSlips : current.saudaSlips,
+                  cashInHand: typeof cloud.cashInHand === 'number' ? cloud.cashInHand : current.cashInHand,
+                };
+                try {
+                  localStorage.setItem(getUserStorageKey(user.id), JSON.stringify(cloud));
+                } catch {}
+                return nextState;
+              }
+              return current;
+            });
+          }
+        })
+        .catch(() => {});
+    }
   },
 
   login: (username, password = '') => {
@@ -360,6 +415,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
 
     syncUserToStorage(cleanData, newUser.id);
+
+    // Register permanently into Neon PostgreSQL
+    if (typeof window !== 'undefined') {
+      fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'signup',
+          userId: newUser.id,
+          username: newUser.username,
+          password: newUser.password,
+          name: newUser.name,
+          phone: newUser.phone,
+          companyName: newUser.companyName,
+        }),
+      }).catch(() => {});
+    }
 
     set({
       currentUser: newUser,

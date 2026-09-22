@@ -20,9 +20,11 @@ import {
   CreditCard
 } from 'lucide-react';
 
+import { saveRegisteredUser, setActiveSessionUserId } from '@/lib/auth';
+
 export default function LoginPage() {
   const router = useRouter();
-  const { currentUser, login, loginAsDemo, signup, isHydrated } = useAppStore();
+  const { currentUser, login, loginAsDemo, signup, isHydrated, rehydrate } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -73,7 +75,30 @@ export default function LoginPage() {
         router.push('/');
       }, 300);
     } else {
-      setErrorMsg(res.error || 'लॉगिन विफल रहा। कृपया सही क्रेडेंशियल दर्ज करें।');
+      // Check Neon Cloud Database (for login on a new device or cleared cache)
+      fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username: loginUsername.trim(), password: loginPassword.trim() }),
+      })
+      .then((r) => r.json())
+      .then((cloudRes) => {
+        if (cloudRes.success && cloudRes.user) {
+          saveRegisteredUser(cloudRes.user);
+          setActiveSessionUserId(cloudRes.user.id);
+          localStorage.removeItem('mandai_explicit_logout');
+          rehydrate();
+          setSuccessMsg('क्लाउड लॉगिन सफल! डैशबोर्ड खुल रहा है...');
+          setTimeout(() => {
+            router.push('/');
+          }, 300);
+        } else {
+          setErrorMsg(cloudRes.error || res.error || 'लॉगिन विफल रहा। कृपया सही क्रेडेंशियल दर्ज करें।');
+        }
+      })
+      .catch(() => {
+        setErrorMsg(res.error || 'लॉगिन विफल रहा। कृपया सही क्रेडेंशियल दर्ज करें।');
+      });
     }
   };
 
